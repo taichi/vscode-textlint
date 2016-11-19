@@ -10,7 +10,7 @@ extension looks for a global install version. If you haven't installed textlint 
 
 On new folders you might also need to create a `.textlintrc` configuration file. You can do this by either running
 [`textlint --init`](https://github.com/textlint/textlint/blob/master/docs/getting-started.md#configuration) in a terminal or by using the VS Code
-command `Create '.textlintrc.json' file`.
+command `Create '.textlintrc' file`.
 
 ## Settings Options
 
