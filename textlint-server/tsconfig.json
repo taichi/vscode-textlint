@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"target": "es6",
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"sourceMap": true,
+		"outDir": "../textlint/server",
+		"lib": [
+			"es6"
+		]
+	},
+	"exclude": [
+		"node_modules"
+	]
+}

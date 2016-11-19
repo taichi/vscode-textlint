@@ -1,0 +1,24 @@
+{
+  "name": "textlint-server",
+  "version": "0.0.1",
+  "description": "Textlint Linter Server",
+  "engines": {
+    "node": "*"
+  },
+  "private": true,
+  "dependencies": {
+    "vscode-languageserver": "^2.6.1",
+    "vscode-textlint-shared": "0.0.1",
+    "vscode-uri": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^6.0.45",
+    "tslint": "^3.15.1",
+    "typescript": "^2.1.1"
+  },
+  "scripts": {
+    "compile": "installServerIntoExtension ../textlint ./package.json ./tsconfig.json && tsc -p .",
+    "watch": "installServerIntoExtension ../textlint ./package.json ./tsconfig.json && tsc --watch -p .",
+    "lint": "tslint src/**.ts"
+  }
+}
