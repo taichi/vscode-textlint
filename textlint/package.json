@@ -1,0 +1,112 @@
+{
+  "name": "vscode-textlint",
+  "displayName": "vscode-textlint",
+  "description": "Integrates Textlint into VS Code.",
+  "version": "0.0.1",
+  "license": "MIT",
+  "publisher": "taichi",
+  "engines": {
+    "vscode": "^1.6.0"
+  },
+  "icon": "textlint-icon_128x128.png",
+  "galleryBanner": {
+    "color": "#5acbe3",
+    "theme": "light"
+  },
+  "categories": [
+    "Linters"
+  ],
+  "activationEvents": [
+    "onLanguage:plaintext",
+    "onLanguage:markdown",
+    "onLanguage:html",
+    "onCommand:textlint.showOutputChannel",
+    "onCommand:textlint.createConfig",
+    "onCommand:textlint.executeAutofix"
+  ],
+  "main": "./out/src/extension",
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "textlint",
+      "properties": {
+        "textlint.nodePath": {
+          "type": "string",
+          "default": null,
+          "description": "A path added to NODE_PATH when resolving the textlint module."
+        },
+        "textlint.run": {
+          "type": "string",
+          "enum": [
+            "onSave",
+            "onType"
+          ],
+          "default": "onType",
+          "description": "Run the linter on save (onSave) or on type (onType)"
+        },
+        "textlint.autoFixOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Turns auto fix on save on or off."
+        }
+      }
+    },
+    "commands": [
+      {
+        "title": "Fix all auto-fixable Problems",
+        "category": "textlint",
+        "command": "textlint.executeAutofix"
+      },
+      {
+        "title": "Create '.textlintrc' File",
+        "category": "textlint",
+        "command": "textlint.createConfig"
+      },
+      {
+        "title": "Show Output Channel",
+        "category": "textlint",
+        "command": "textlint.showOutputChannel"
+      }
+    ]
+  },
+  "scripts": {
+    "prepare": "run-s prepare:shared prepare:server prepare:client",
+    "prepare:client": "npm link vscode-textlint-shared",
+    "prepare:server": "cd ../textlint-server && npm link vscode-textlint-shared",
+    "prepare:shared": "cd ../textlint-shared && npm link",
+    "compile": "run-s compile:shared compile:server compile:client",
+    "compile:client": "tsc -p ./",
+    "compile:shared": "cd ../textlint-shared && npm run compile",
+    "compile:server": "cd ../textlint-server && npm run compile",
+    "watch": "npm-run-all prepare --parallel watch:*",
+    "watch:client": "tsc -watch -p ./",
+    "watch:shared": "cd ../textlint-shared && npm run watch",
+    "watch:server": "cd ../textlint-server && npm run watch",
+    "vscode:link": "node ./node_modules/vscode/bin/install",
+    "dispose-links": "npm unlink vscode-textlint-shared && cd ../textlint-server && npm unlink vscode-textlint-shared && cd ../textlint-shared && npm unlink",
+    "install:shared": "npm install && cd ../textlint-server && npm install",
+    "vscode:prepublish": "run-s vscode:link dispose-links install:shared compile:server compile:client",
+    "postinstall": "npm run vscode:link"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^2.5.0",
+    "vscode-textlint-shared": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/mocha": "^2.2.32",
+    "@types/node": "^6.0.40",
+    "mocha": "^2.3.3",
+    "npm-run-all": "^3.1.1",
+    "tslint": "^3.15.1",
+    "typescript": "^2.0.3",
+    "vscode": "^1.0.0"
+  },
+  "homepage": "https://github.com/taichi/vscode-textlint",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taichi/vscode-textlint"
+  },
+  "bugs": {
+    "url": "https://github.com/taichi/vscode-textlint/issues"
+  }
+}
