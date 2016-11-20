@@ -2,13 +2,12 @@ import * as path from "path";
 import * as fs from "fs";
 
 import {
-    workspace, window, commands, ExtensionContext,
-    TextEditor, Uri, TextDocumentSaveReason
+    workspace, window, commands, ExtensionContext
 } from "vscode";
 
 import {
     LanguageClient, LanguageClientOptions, ServerOptions, TextEdit, Protocol2Code,
-    TextDocumentIdentifier, State as ServerState,
+    State as ServerState,
     ErrorHandler, ErrorAction, CloseAction,
     TransportKind, RevealOutputChannelOn
 } from "vscode-languageclient";
@@ -72,7 +71,7 @@ function newClient(context: ExtensionContext): LanguageClient {
     let clientOptions: LanguageClientOptions = {
         documentSelector: languages,
         diagnosticCollectionName: "textlint",
-        revealOutputChannelOn: RevealOutputChannelOn.Never,
+        revealOutputChannelOn: RevealOutputChannelOn.Error,
         synchronize: {
             configurationSection: "textlint",
             fileEvents: [
@@ -94,7 +93,6 @@ function newClient(context: ExtensionContext): LanguageClient {
         },
         initializationFailedHandler: error => {
             client.error("Server initialization failed.", error);
-            client.outputChannel.show(true);
             return false;
         },
         errorHandler: {

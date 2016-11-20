@@ -1,3 +1,10 @@
+import {
+    Diagnostic, TextDocument,
+} from "vscode-languageserver";
+
+import { TextLintMessage, TextLintFixCommand } from "./textlint";
+
+
 export interface AutoFix {
     version: number;
     ruleId: string;
@@ -17,16 +24,18 @@ export class TextLintFixRepository {
         }
     }
 
-    find(diag: Diagnostic): AutoFix | undefined {
-        return this.map.get(this.toKey(diag));
+    find(diags: Diagnostic[]): AutoFix[] {
+        return diags.map(d => this.map.get(this.toKey(d))).filter(af => af);
     }
+
+    clear = () => this.map.clear();
 
     toKey(diagnostic: Diagnostic): string {
         let range = diagnostic.range;
         return `[${range.start.line},${range.start.character},${range.end.line},${range.end.character}]-${diagnostic.code}`;
     }
 
-    get empty(): boolean {
+    isEmpty(): boolean {
         return this.map.size < 1;
     }
 
@@ -54,8 +63,8 @@ export class TextLintFixRepository {
         return !!lastEdit && lastEdit.fix.range[1] > newEdit.fix.range[0];
     }
 
-    separatedValues(): AutoFix[] {
-        let sv = this.sortedValues();
+    separatedValues(filter: (ArutoFix) => boolean = () => true): AutoFix[] {
+        let sv = this.sortedValues().filter(filter);
         if (sv.length < 1) {
             return sv;
         }

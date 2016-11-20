@@ -1,8 +1,7 @@
 import {
     createConnection, IConnection,
-    ResponseError,
-    InitializeResult, InitializeError,
-    Diagnostic, DiagnosticSeverity, Position, Range, Files,
+    ResponseError, InitializeResult, InitializeError,
+    Command, Diagnostic, DiagnosticSeverity, Position, Range, Files,
     TextDocuments, TextDocument, TextEdit,
     ErrorMessageTracker, IPCMessageReader, IPCMessageWriter
 } from "vscode-languageserver";
@@ -17,7 +16,7 @@ import {
 } from "vscode-textlint-shared";
 
 import { TextLintMessage } from "./textlint";
-import { TextLintFixRepository } from "./autofix";
+import { TextLintFixRepository, AutoFix } from "./autofix";
 
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
 let documents: TextDocuments = new TextDocuments();
@@ -48,7 +47,8 @@ connection.onInitialize((params): Thenable<InitializeResult | ResponseError<Init
             };
             return {
                 capabilities: {
-                    textDocumentSync: documents.syncKind
+                    textDocumentSync: documents.syncKind,
+                    codeActionProvider: true
                 }
             };
         });
@@ -72,10 +72,15 @@ documents.onDidSave(event => {
         validateSingle(event.document);
     }
 });
-documents.onDidOpen(event => { });
+documents.onDidOpen(event => {
+    fixrepos.set(event.document.uri, new TextLintFixRepository());
+});
 documents.onDidClose(event => {
     // cleanup errors
-    connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
+    let uri = event.document.uri;
+    fixrepos.delete(uri);
+    connection.sendDiagnostics({ uri, diagnostics: [] });
+
 });
 
 function validateSingle(textDocument: TextDocument) {
@@ -115,23 +120,22 @@ function validate(doc: TextDocument) {
         let engine = engineFactory();
         let uri = doc.uri;
         let ext = path.extname(Uri.parse(uri).fsPath);
-        fixrepos.delete(uri);
-        engine.executeOnText(doc.getText(), ext ? ext : ".txt")
-            .then(([results]) => {
-                return results.messages
-                    .map(toDiagnostic)
-                    .map(([msg, diag]) => {
-                        let repo = fixrepos.get(uri);
-                        if (!repo) {
-                            repo = new TextLintFixRepository();
-                            fixrepos.set(uri, repo);
-                        }
-                        repo.register(doc, diag, msg);
-                        return diag;
-                    });
-            }).then(diagnostics => {
-                connection.sendDiagnostics({ uri, diagnostics });
-            }, errors => sendError(errors));
+        let repo = fixrepos.get(uri);
+        if (repo) {
+            repo.clear();
+            engine.executeOnText(doc.getText(), ext ? ext : ".txt")
+                .then(([results]) => {
+                    return results.messages
+                        .map(toDiagnostic)
+                        .map(([msg, diag]) => {
+                            repo.register(doc, diag, msg);
+                            return diag;
+                        });
+                }).then(diagnostics => {
+                    connection.sendDiagnostics({ uri, diagnostics });
+                }, errors => sendError(errors));
+
+        }
     } else {
         connection.sendNotification(NoConfigNotification.type);
     }
@@ -160,23 +164,51 @@ function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
     return [message, diag];
 }
 
+
+connection.onCodeAction(params => {
+    let result: Command[] = [];
+    let uri = params.textDocument.uri;
+    let repo = fixrepos.get(uri);
+    if (repo && repo.isEmpty() === false) {
+        let doc = documents.get(uri);
+        let toCMD = (title, edits) =>
+            Command.create(title,
+                "textlint.applyTextEdits",
+                uri, repo.version, edits);
+        let toTE = af => toTextEdit(doc, af);
+
+        repo.find(params.context.diagnostics).forEach(af => {
+            result.push(toCMD(`Fix this ${af.ruleId} problem`, [toTE(af)]));
+            let same = repo.separatedValues(v => v.ruleId === af.ruleId);
+            if (0 < same.length) {
+                result.push(toCMD(`Fix all ${af.ruleId} problems`, same.map(toTE)));
+            }
+        });
+        let all = repo.separatedValues();
+        if (0 < all.length) {
+            result.push(toCMD(`Fix all auto-fixable problems`, all.map(toTE)));
+        }
+    }
+    return result;
+});
+
+function toTextEdit(textDocument: TextDocument, af: AutoFix): TextEdit {
+    return TextEdit.replace(
+        Range.create(
+            textDocument.positionAt(af.fix.range[0]),
+            textDocument.positionAt(af.fix.range[1])),
+        af.fix.text || "");
+}
+
 connection.onRequest(AllFixesRequest.type, (params: AllFixesRequest.Params) => {
     let uri = params.textDocument.uri;
     let textDocument = documents.get(uri);
     let repo = fixrepos.get(uri);
-    if (repo) {
-        if (repo.empty === false) {
-            return {
-                documentVersion: repo.version,
-                edits: repo.separatedValues().map(af => {
-                    return TextEdit.replace(
-                        Range.create(
-                            textDocument.positionAt(af.fix.range[0]),
-                            textDocument.positionAt(af.fix.range[1])),
-                        af.fix.text || "");
-                })
-            };
-        }
+    if (repo && repo.isEmpty() === false) {
+        return {
+            documentVersion: repo.version,
+            edits: repo.separatedValues().map(af => toTextEdit(textDocument, af))
+        };
     }
 });
 
