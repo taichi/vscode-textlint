@@ -2,7 +2,7 @@
   "name": "vscode-textlint",
   "displayName": "vscode-textlint",
   "description": "Integrates Textlint into VS Code.",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "license": "MIT",
   "publisher": "taichi",
   "engines": {
@@ -90,7 +90,7 @@
   },
   "dependencies": {
     "vscode-languageclient": "^2.5.0",
-    "vscode-textlint-shared": "^0.1.0"
+    "vscode-textlint-shared": "^0.2.0"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.32",

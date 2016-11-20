@@ -2,7 +2,7 @@ import * as path from "path";
 import * as fs from "fs";
 
 import {
-    workspace, window, commands, ExtensionContext
+    workspace, window, commands, ExtensionContext, Disposable, TextDocumentSaveReason
 } from "vscode";
 
 import {
@@ -13,12 +13,11 @@ import {
 } from "vscode-languageclient";
 
 import {
+    SUPPORT_LANGUAGES,
     StatusNotification, NoConfigNotification, NoLibraryNotification, ExitNotification, AllFixesRequest
 } from "vscode-textlint-shared";
 
 import { Status, StatusBar } from "./status";
-
-const SUPPORT_LANGUAGES = ["plaintext", "markdown", "html"];
 
 export function activate(context: ExtensionContext) {
     let client = newClient(context);
@@ -45,6 +44,12 @@ Failed to load the textlint library.
 To use textlint in this workspace please install textlint using \'npm install textlint\' or globally using \'npm install -g textlint\'.
 You need to reopen the workspace after installing textlint.`);
     });
+
+    let changeConfigHandler = () => {
+        configureAutoFixOnSave(client);
+    };
+    workspace.onDidChangeConfiguration(changeConfigHandler);
+    changeConfigHandler();
 
     context.subscriptions.push(
         commands.registerCommand("textlint.createConfig", createConfig),
@@ -130,6 +135,39 @@ function createConfig() {
     }
 }
 
+let autoFixOnSave: Disposable;
+
+function configureAutoFixOnSave(client: LanguageClient) {
+    let auto = getConfig("autoFixOnSave", false);
+    if (auto && !autoFixOnSave) {
+        let languages = new Set(SUPPORT_LANGUAGES);
+        autoFixOnSave = workspace.onWillSaveTextDocument(event => {
+            let doc = event.document;
+            if (languages.has(doc.languageId) && event.reason !== TextDocumentSaveReason.AfterDelay) {
+                let version = doc.version;
+                let uri: string = doc.uri.toString();
+                event.waitUntil(
+                    client.sendRequest(AllFixesRequest.type,
+                        { textDocument: { uri } }).then((result: AllFixesRequest.Result) => {
+                            return result && result.documentVersion === version ?
+                                Protocol2Code.asTextEdits(result.edits) :
+                                [];
+                        })
+                );
+            }
+        });
+    }
+    if (auto === false) {
+        disposeAutoFixOnSave();
+    }
+}
+function disposeAutoFixOnSave() {
+    if (autoFixOnSave) {
+        autoFixOnSave.dispose();
+        autoFixOnSave = undefined;
+    }
+}
+
 function makeAutoFixFn(client: LanguageClient) {
     return () => {
         let textEditor = window.activeTextEditor;
@@ -171,6 +209,7 @@ function applyTextEdits(client: LanguageClient, uri: string, documentVersion: nu
 }
 
 export function deactivate() {
+    disposeAutoFixOnSave();
 }
 
 function config() {

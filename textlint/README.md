@@ -14,12 +14,26 @@ command `Create '.textlintrc' file`.
 
 ## Settings Options
 
+* `textlint.autoFixOnSave`
+  * by default is `false`. if you set `true`, Automatically fix auto-fixable errors on save.
 * `textlint.run`
   * run the linter `onSave` or `onType`, default is `onType`.
 * `textlint.nodePath`
   * use this setting if an installed textlint package can't be detected, for example `/myGlobalNodePackages/node_modules`.
 
+## Commands
+
+This extension contributes the following commands to the Command palette.
+
+* Create '.textlintrc' File
+  * creates a new .eslintrc.json file.
+* Fix all auto-fixable Problems
+  * applies textlint auto-fix resolutions to all fixable problems.
+
 ## Release Notes
+
+### 0.2.0
+* Supports fixing errors.
 
 ### 0.1.0
 * Initial Release
