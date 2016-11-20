@@ -1,6 +1,7 @@
 {
   "filters": {},
   "rules": {
-    "no-todo": true
+    "no-todo": true,
+    "common-misspellings": true
   }
 }
