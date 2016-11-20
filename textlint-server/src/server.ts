@@ -120,10 +120,12 @@ function validate(doc: TextDocument) {
         let engine = engineFactory();
         let uri = doc.uri;
         let ext = path.extname(Uri.parse(uri).fsPath);
+        ext = ext ? ext : ".txt";
         let repo = fixrepos.get(uri);
-        if (repo) {
+        if (repo &&
+            -1 < engine.availableExtensions.findIndex(s => s === ext)) {
             repo.clear();
-            engine.executeOnText(doc.getText(), ext ? ext : ".txt")
+            engine.executeOnText(doc.getText(), ext)
                 .then(([results]) => {
                     return results.messages
                         .map(toDiagnostic)

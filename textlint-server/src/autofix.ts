@@ -4,7 +4,6 @@ import {
 
 import { TextLintMessage, TextLintFixCommand } from "./textlint";
 
-
 export interface AutoFix {
     version: number;
     ruleId: string;
