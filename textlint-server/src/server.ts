@@ -1,9 +1,9 @@
 import {
     createConnection, IConnection,
-    ResponseError, RequestType, RequestHandler, NotificationHandler,
+    ResponseError,
     InitializeResult, InitializeError,
     Diagnostic, DiagnosticSeverity, Position, Range, Files,
-    TextDocuments, TextDocument, TextDocumentSyncKind, TextEdit, TextDocumentIdentifier,
+    TextDocuments, TextDocument, TextEdit,
     ErrorMessageTracker, IPCMessageReader, IPCMessageWriter
 } from "vscode-languageserver";
 
@@ -13,8 +13,11 @@ import * as fs from "fs";
 import * as path from "path";
 
 import {
-    StatusNotification, NoConfigNotification, NoLibraryNotification, ExitNotification
+    StatusNotification, NoConfigNotification, NoLibraryNotification, ExitNotification, AllFixesRequest
 } from "vscode-textlint-shared";
+
+import { TextLintMessage } from "./textlint";
+import { TextLintFixRepository } from "./autofix";
 
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
 let documents: TextDocuments = new TextDocuments();
@@ -105,15 +108,29 @@ function validateMany(textDocuments: TextDocument[]) {
     });
 }
 
-function validate(textDocument: TextDocument) {
+let fixrepos: Map<string/* uri */, TextLintFixRepository> = new Map();
+
+function validate(doc: TextDocument) {
     if (fs.existsSync(optionPath())) {
-        let linter = engineFactory();
-        let ext = path.extname(Uri.parse(textDocument.uri).fsPath);
-        linter.executeOnText(textDocument.getText(), ext ? ext : ".txt")
+        let engine = engineFactory();
+        let uri = doc.uri;
+        let ext = path.extname(Uri.parse(uri).fsPath);
+        fixrepos.delete(uri);
+        engine.executeOnText(doc.getText(), ext ? ext : ".txt")
             .then(([results]) => {
-                return results.messages.map(makeDiagnostic);
-            }).then(diags => {
-                connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: diags });
+                return results.messages
+                    .map(toDiagnostic)
+                    .map(([msg, diag]) => {
+                        let repo = fixrepos.get(uri);
+                        if (!repo) {
+                            repo = new TextLintFixRepository();
+                            fixrepos.set(uri, repo);
+                        }
+                        repo.register(doc, diag, msg);
+                        return diag;
+                    });
+            }).then(diagnostics => {
+                connection.sendDiagnostics({ uri, diagnostics });
             }, errors => sendError(errors));
     } else {
         connection.sendNotification(NoConfigNotification.type);
@@ -129,17 +146,39 @@ function toDiagnosticSeverity(severity?: number): DiagnosticSeverity {
     return DiagnosticSeverity.Information;
 }
 
-function makeDiagnostic(message): Diagnostic {
+function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
+    TRACE(JSON.stringify(message));
     let txt = message.ruleId ? `${message.message} (${message.ruleId})` : message.message;
     let pos = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1));
-    return {
+    let diag: Diagnostic = {
         message: txt,
         severity: toDiagnosticSeverity(message.severity),
-        source: 'textlint',
+        source: "textlint",
         range: Range.create(pos, pos),
         code: message.ruleId
     };
+    return [message, diag];
 }
+
+connection.onRequest(AllFixesRequest.type, (params: AllFixesRequest.Params) => {
+    let uri = params.textDocument.uri;
+    let textDocument = documents.get(uri);
+    let repo = fixrepos.get(uri);
+    if (repo) {
+        if (repo.empty === false) {
+            return {
+                documentVersion: repo.version,
+                edits: repo.separatedValues().map(af => {
+                    return TextEdit.replace(
+                        Range.create(
+                            textDocument.positionAt(af.fix.range[0]),
+                            textDocument.positionAt(af.fix.range[1])),
+                        af.fix.text || "");
+                })
+            };
+        }
+    }
+});
 
 function sendOK() {
     connection.sendNotification(StatusNotification.type, { status: StatusNotification.Status.OK });

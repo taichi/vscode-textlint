@@ -1,5 +1,6 @@
 
-import { NotificationType } from "vscode-jsonrpc";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
+import { TextDocumentIdentifier, TextEdit } from "vscode-languageserver-types";
 
 export namespace ExitNotification {
     export interface ExitParams {
@@ -29,4 +30,17 @@ export namespace NoConfigNotification {
 
 export namespace NoLibraryNotification {
     export const type: NotificationType<void> = { method: "textlint/nolibrary" };
+}
+
+export namespace AllFixesRequest {
+    export interface Params {
+        textDocument: TextDocumentIdentifier;
+    }
+
+    export interface Result {
+        documentVersion: number;
+        edits: TextEdit[];
+    }
+
+    export const type: RequestType<Params, Result, void> = { method: "textDocument/textlint/allFixes" };
 }

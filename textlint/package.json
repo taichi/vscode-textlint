@@ -71,8 +71,8 @@
   },
   "scripts": {
     "prepare": "run-s prepare:shared prepare:server prepare:client",
-    "prepare:client": "npm link vscode-textlint-shared",
-    "prepare:server": "cd ../textlint-server && npm link vscode-textlint-shared",
+    "prepare:client": "npm uninstall vscode-textlint-shared && npm link vscode-textlint-shared",
+    "prepare:server": "cd ../textlint-server && npm uninstall vscode-textlint-shared && npm link vscode-textlint-shared",
     "prepare:shared": "cd ../textlint-shared && npm link",
     "compile": "run-s compile:shared compile:server compile:client",
     "compile:client": "tsc -p ./",
@@ -90,7 +90,7 @@
   },
   "dependencies": {
     "vscode-languageclient": "^2.5.0",
-    "vscode-textlint-shared": "^0.0.1"
+    "vscode-textlint-shared": "^0.1.0"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.32",
