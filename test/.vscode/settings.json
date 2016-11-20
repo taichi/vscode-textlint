@@ -1,3 +1,4 @@
 {
-    "textlint.run": "onType"
+    "textlint.run": "onType",
+    "textlint.autoFixOnSave": false
 }
