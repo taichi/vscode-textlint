@@ -2,6 +2,8 @@
 import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { TextDocumentIdentifier, TextEdit } from "vscode-languageserver-types";
 
+export const SUPPORT_LANGUAGES = ["plaintext", "markdown", "html"];
+
 export namespace ExitNotification {
     export interface ExitParams {
         code: number;
