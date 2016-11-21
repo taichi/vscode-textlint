@@ -1,11 +1,11 @@
 
-export interface TextLintFixCommand {
+interface TextLintFixCommand {
     text: string;
     range: [number, number];
     isAbsolute: boolean;
 }
 
-export interface TextLintMessage {
+interface TextLintMessage {
     // See src/shared/type/MessageType.js
     // Message Type
     type: string;

@@ -15,7 +15,6 @@ import {
     StatusNotification, NoConfigNotification, NoLibraryNotification, ExitNotification, AllFixesRequest
 } from "vscode-textlint-shared";
 
-import { TextLintMessage } from "./textlint";
 import { TextLintFixRepository, AutoFix } from "./autofix";
 
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
@@ -153,7 +152,7 @@ function toDiagnosticSeverity(severity?: number): DiagnosticSeverity {
 }
 
 function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
-    TRACE(JSON.stringify(message));
+    //TRACE(JSON.stringify(message));
     let txt = message.ruleId ? `${message.message} (${message.ruleId})` : message.message;
     let pos = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1));
     let diag: Diagnostic = {

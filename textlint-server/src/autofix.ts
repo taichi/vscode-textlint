@@ -2,8 +2,6 @@ import {
     Diagnostic, TextDocument,
 } from "vscode-languageserver";
 
-import { TextLintMessage, TextLintFixCommand } from "./textlint";
-
 export interface AutoFix {
     version: number;
     ruleId: string;
