@@ -21,6 +21,7 @@ export class StatusBar {
     private _supports: string[];
     private _status = Status.OK;
     private _serverRunning = false;
+    private _intervalToken;
     constructor(supports) {
         this._supports = supports;
         this._delegate.text = this._status.label;
@@ -28,7 +29,10 @@ export class StatusBar {
         this.update();
     }
 
-    dispose() { this._delegate.dispose(); }
+    dispose() {
+        this.stopProgress();
+        this._delegate.dispose();
+    }
 
     show(show: boolean) {
         if (show) {
@@ -60,5 +64,27 @@ export class StatusBar {
         this.show(this.serverRunning === false
             || this._status !== Status.OK
             || (editor && 0 < this._supports.indexOf(editor.document.languageId)));
+    }
+
+    startProgress() {
+        if (!this._intervalToken) {
+            let c = 0;
+            let orig = this._delegate.text;
+            let chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
+            let l = chars.length;
+            this._intervalToken = setInterval(() => {
+                let t = c++ % l;
+                this._delegate.text = chars[t] + " " + orig;
+            }, 300);
+        }
+    }
+
+    stopProgress() {
+        if (this._intervalToken) {
+            let tk = this._intervalToken;
+            this._intervalToken = null;
+            clearInterval(tk);
+            this.update();
+        }
     }
 }

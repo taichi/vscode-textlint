@@ -12,7 +12,8 @@ import * as fs from "fs";
 import * as path from "path";
 
 import {
-    StatusNotification, NoConfigNotification, NoLibraryNotification, ExitNotification, AllFixesRequest
+    StatusNotification, NoConfigNotification, NoLibraryNotification, ExitNotification, AllFixesRequest,
+    StartProgressNotification, StopProgressNotification
 } from "vscode-textlint-shared";
 
 import { TextLintFixRepository, AutoFix } from "./autofix";
@@ -79,15 +80,17 @@ documents.onDidClose(event => {
     let uri = event.document.uri;
     fixrepos.delete(uri);
     connection.sendDiagnostics({ uri, diagnostics: [] });
-
 });
 
 function validateSingle(textDocument: TextDocument) {
     try {
+        sendStartProgress();
         validate(textDocument);
         sendOK();
     } catch (err) {
         sendError(err);
+    } finally {
+        sendStopProgress();
     }
 }
 function validateMany(textDocuments: TextDocument[]) {
@@ -103,13 +106,14 @@ function validateMany(textDocuments: TextDocument[]) {
             }
         });
     });
+    sendStartProgress();
     Promise.all(promises).then(() => {
         tracker.sendErrors(connection);
         sendOK();
     }, errors => {
         tracker.sendErrors(connection);
         sendError(errors);
-    });
+    }).then(() => sendStopProgress());
 }
 
 let fixrepos: Map<string/* uri */, TextLintFixRepository> = new Map();
@@ -165,7 +169,6 @@ function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
     return [message, diag];
 }
 
-
 connection.onCodeAction(params => {
     let result: Command[] = [];
     let uri = params.textDocument.uri;
@@ -212,6 +215,14 @@ connection.onRequest(AllFixesRequest.type, (params: AllFixesRequest.Params) => {
         };
     }
 });
+
+function sendStartProgress() {
+    connection.sendNotification(StartProgressNotification.type);
+}
+
+function sendStopProgress() {
+    connection.sendNotification(StopProgressNotification.type);
+}
 
 function sendOK() {
     connection.sendNotification(StatusNotification.type, { status: StatusNotification.Status.OK });

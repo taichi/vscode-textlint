@@ -14,7 +14,8 @@ import {
 
 import {
     SUPPORT_LANGUAGES,
-    StatusNotification, NoConfigNotification, NoLibraryNotification, ExitNotification, AllFixesRequest
+    StatusNotification, NoConfigNotification, NoLibraryNotification, ExitNotification, AllFixesRequest,
+    StartProgressNotification, StopProgressNotification
 } from "vscode-textlint-shared";
 
 import { Status, StatusBar } from "./status";
@@ -44,6 +45,8 @@ Failed to load the textlint library.
 To use textlint in this workspace please install textlint using \'npm install textlint\' or globally using \'npm install -g textlint\'.
 You need to reopen the workspace after installing textlint.`);
     });
+    client.onNotification(StartProgressNotification.type, () => statusBar.startProgress());
+    client.onNotification(StopProgressNotification.type, () => statusBar.stopProgress());
 
     let changeConfigHandler = () => {
         configureAutoFixOnSave(client);
