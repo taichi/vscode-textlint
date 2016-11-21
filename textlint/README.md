@@ -4,6 +4,8 @@ Integrates [textlint](https://textlint.github.io/) into VS Code. If you are new 
 
 ![hover](https://github.com/taichi/vscode-textlint/raw/master/imgs/hover.png?raw=true)
 
+![codeaction](https://github.com/taichi/vscode-textlint/raw/master/imgs/codeaction.png?raw=true)
+
 The extension uses the textlint library installed in the opened workspace folder. If the folder doesn't provide one the
 extension looks for a global install version. If you haven't installed textlint either locally or globally do so by running
 `npm install textlint` in the workspace folder for a local install or `npm install -g textlint` for a global install.
