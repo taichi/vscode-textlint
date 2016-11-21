@@ -2,6 +2,7 @@
   "filters": {},
   "rules": {
     "no-todo": true,
-    "common-misspellings": true
+    "common-misspellings": true,
+    "preset-ja-technical-writing": true
   }
 }
