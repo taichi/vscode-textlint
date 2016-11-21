@@ -46,3 +46,11 @@ export namespace AllFixesRequest {
 
     export const type: RequestType<Params, Result, void> = { method: "textDocument/textlint/allFixes" };
 }
+
+export namespace StartProgressNotification {
+    export const type: NotificationType<void> = { method: "textlint/progress/start" };
+}
+
+export namespace StopProgressNotification {
+    export const type: NotificationType<void> = { method: "textlint/progress/stop" };
+}
