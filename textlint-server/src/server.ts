@@ -10,6 +10,7 @@ import Uri from "vscode-uri";
 
 import * as fs from "fs";
 import * as path from "path";
+import * as glob from "glob";
 
 import {
     StatusNotification, NoConfigNotification, NoLibraryNotification, ExitNotification, AllFixesRequest,
@@ -25,10 +26,6 @@ let settings;
 let engineFactory;
 documents.listen(connection);
 
-function optionPath() {
-    return path.join(workspaceRoot, ".textlintrc");
-}
-
 connection.onInitialize((params): Thenable<InitializeResult | ResponseError<InitializeError>> => {
     workspaceRoot = params.rootPath;
     let {
@@ -40,10 +37,8 @@ connection.onInitialize((params): Thenable<InitializeResult | ResponseError<Init
             return Promise.reject(error);
         })
         .then(mod => {
-            engineFactory = () => {
-                return new mod.TextLintEngine({
-                    configFile: optionPath()
-                });
+            engineFactory = (configFile) => {
+                return new mod.TextLintEngine({ configFile });
             };
             return {
                 capabilities: {
@@ -119,8 +114,9 @@ function validateMany(textDocuments: TextDocument[]) {
 let fixrepos: Map<string/* uri */, TextLintFixRepository> = new Map();
 
 function validate(doc: TextDocument) {
-    if (fs.existsSync(optionPath())) {
-        let engine = engineFactory();
+    let files = glob.sync(`${workspaceRoot}/.textlintr{c.js,c.yaml,c.yml,c,c.json}`);
+    if (0 < files.length) {
+        let engine = engineFactory(files[0]);
         let uri = doc.uri;
         let ext = path.extname(Uri.parse(uri).fsPath);
         ext = ext ? ext : ".txt";

@@ -7,11 +7,13 @@
   },
   "private": true,
   "dependencies": {
+    "glob": "^7.1.1",
     "vscode-languageserver": "^2.6.1",
     "vscode-textlint-shared": "^0.2.0",
     "vscode-uri": "^1.0.0"
   },
   "devDependencies": {
+    "@types/glob": "^5.0.30",
     "@types/node": "^6.0.45",
     "tslint": "^3.15.1",
     "typescript": "^2.1.1"
