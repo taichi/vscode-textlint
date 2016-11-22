@@ -48,6 +48,16 @@
           "type": "boolean",
           "default": false,
           "description": "Turns auto fix on save on or off."
+        },
+        "textlint.trace": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VSCode and the textlint linter service."
         }
       }
     },
@@ -89,6 +99,7 @@
     "postinstall": "npm run vscode:link"
   },
   "dependencies": {
+    "vscode-jsonrpc": "^2.4.0",
     "vscode-languageclient": "^2.5.0",
     "vscode-textlint-shared": "^0.2.0"
   },

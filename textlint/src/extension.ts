@@ -12,6 +12,8 @@ import {
     TransportKind, RevealOutputChannelOn
 } from "vscode-languageclient";
 
+import { LogTraceNotification } from "vscode-jsonrpc";
+
 import {
     SUPPORT_LANGUAGES,
     StatusNotification, NoConfigNotification, NoLibraryNotification, ExitNotification, AllFixesRequest,
@@ -48,9 +50,8 @@ You need to reopen the workspace after installing textlint.`);
     client.onNotification(StartProgressNotification.type, () => statusBar.startProgress());
     client.onNotification(StopProgressNotification.type, () => statusBar.stopProgress());
 
-    let changeConfigHandler = () => {
-        configureAutoFixOnSave(client);
-    };
+    client.onNotification(LogTraceNotification.type, p => client.info(p.message, p.verbose));
+    let changeConfigHandler = () => configureAutoFixOnSave(client);
     workspace.onDidChangeConfiguration(changeConfigHandler);
     changeConfigHandler();
 
@@ -85,18 +86,12 @@ function newClient(context: ExtensionContext): LanguageClient {
             fileEvents: [
                 workspace.createFileSystemWatcher("**/.textlintr{c.js,c.yaml,c.yml,c,c.json}"),
                 workspace.createFileSystemWatcher("**/package.json")
-            ],
-            textDocumentFilter: doc => {
-                let fsPath = doc.fileName;
-                if (fsPath) {
-                    let basename = path.basename(fsPath);
-                    return /^\.textlintrc/.test(basename);
-                }
-            }
+            ]
         },
         initializationOptions: () => {
             return {
-                nodePath: getConfig("nodePath")
+                nodePath: getConfig("nodePath"),
+                trace: getConfig("trace", "off")
             };
         },
         initializationFailedHandler: error => {
