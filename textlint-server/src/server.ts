@@ -1,14 +1,14 @@
 import {
-    createConnection, IConnection,
-    ResponseError, InitializeResult, InitializeError,
+    createConnection, IConnection, FileChangeType,
     Command, Diagnostic, DiagnosticSeverity, Position, Range, Files,
     TextDocuments, TextDocument, TextEdit,
     ErrorMessageTracker, IPCMessageReader, IPCMessageWriter
 } from "vscode-languageserver";
 
+import { Trace, LogTraceNotification } from "vscode-jsonrpc";
+
 import Uri from "vscode-uri";
 
-import * as fs from "fs";
 import * as path from "path";
 import * as glob from "glob";
 
@@ -22,124 +22,152 @@ import { TextLintFixRepository, AutoFix } from "./autofix";
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
 let documents: TextDocuments = new TextDocuments();
 let workspaceRoot: string;
+let nodePath: string;
+let trace: number;
+let textlintModule;
 let settings;
-let engineFactory;
 documents.listen(connection);
 
-connection.onInitialize((params): Thenable<InitializeResult | ResponseError<InitializeError>> => {
+connection.onInitialize(params => {
     workspaceRoot = params.rootPath;
-    let {
-        nodePath
-    } = params.initializationOptions;
+    let opts = params.initializationOptions;
+    nodePath = opts.nodePath;
+    trace = Trace.fromString(opts.trace);
+    return resolveTextLint().then(() => {
+        return {
+            capabilities: {
+                textDocumentSync: documents.syncKind,
+                codeActionProvider: true
+            }
+        };
+    });
+});
+connection.onDidChangeConfiguration(change => {
+    settings = change.settings.textlint;
+    trace = Trace.fromString(settings.trace);
+    return validateMany(documents.all());
+});
+connection.onDidChangeWatchedFiles(params => {
+    TRACE("onDidChangeWatchedFiles");
+    params.changes.forEach(event => {
+        if (event.uri.endsWith("package.json") &&
+            (event.type === FileChangeType.Changed || event.type === FileChangeType.Changed)) {
+            textlintModule = null;
+        }
+    });
+    return validateMany(documents.all());
+});
+
+documents.onDidChangeContent(event => {
+    let uri = event.document.uri;
+    TRACE(`onDidChangeContent ${uri}`);
+    if (settings.run === "onType") {
+        return validateSingle(event.document);
+    }
+});
+documents.onDidSave(event => {
+    let uri = event.document.uri;
+    TRACE(`onDidSave ${uri}`);
+    if (settings.run === "onSave") {
+        return validateSingle(event.document);
+    }
+});
+
+function resolveTextLint(): Thenable<any> {
     return Files.resolveModule2(workspaceRoot, "textlint", nodePath, TRACE)
         .then(value => value, error => {
             connection.sendNotification(NoLibraryNotification.type);
             return Promise.reject(error);
-        })
-        .then(mod => {
-            engineFactory = (configFile) => {
-                return new mod.TextLintEngine({ configFile });
-            };
-            return {
-                capabilities: {
-                    textDocumentSync: documents.syncKind,
-                    codeActionProvider: true
-                }
-            };
-        });
+        }).then(mod => textlintModule = mod);
+}
 
-});
-connection.onDidChangeConfiguration((change) => {
-    settings = change.settings.textlint;
-    validateMany(documents.all());
-});
-connection.onDidChangeWatchedFiles((params) => {
-    validateMany(documents.all());
-});
-
-documents.onDidChangeContent(event => {
-    if (settings.run === "onType") {
-        validateSingle(event.document);
-    }
-});
-documents.onDidSave(event => {
-    if (settings.run === "onSave") {
-        validateSingle(event.document);
-    }
-});
 documents.onDidOpen(event => {
-    fixrepos.set(event.document.uri, new TextLintFixRepository());
+    let uri = event.document.uri;
+    TRACE(`onDidOpen ${uri}`);
+    if (uri.startsWith("file:") && fixrepos.has(uri) === false) {
+        fixrepos.set(uri, new TextLintFixRepository(() => {
+            if (textlintModule) {
+                return Promise.resolve(textlintModule);
+            }
+            return resolveTextLint();
+        }));
+    }
 });
 documents.onDidClose(event => {
     // cleanup errors
     let uri = event.document.uri;
-    fixrepos.delete(uri);
-    connection.sendDiagnostics({ uri, diagnostics: [] });
+    if (uri.startsWith("file:")) {
+        fixrepos.delete(uri);
+        connection.sendDiagnostics({ uri, diagnostics: [] });
+    }
 });
 
 function validateSingle(textDocument: TextDocument) {
-    try {
-        sendStartProgress();
-        validate(textDocument);
-        sendOK();
-    } catch (err) {
-        sendError(err);
-    } finally {
-        sendStopProgress();
-    }
+    sendStartProgress();
+    return validate(textDocument).then(sendOK, error => {
+        sendError(error);
+    }).then(sendStopProgress);
 }
+
 function validateMany(textDocuments: TextDocument[]) {
     let tracker = new ErrorMessageTracker();
+    sendStartProgress();
     let promises = textDocuments.map(doc => {
-        return new Promise((resolve, reject) => {
-            try {
-                validate(doc);
-                resolve(StatusNotification.Status.OK);
-            } catch (err) {
-                tracker.add(err.message);
-                reject(err);
-            }
+        return validate(doc).then(undefined, error => {
+            tracker.add(error.message);
+            return Promise.reject(error);
         });
     });
-    sendStartProgress();
-    Promise.all(promises).then(() => {
+    return Promise.all(promises).then(() => {
         tracker.sendErrors(connection);
         sendOK();
     }, errors => {
         tracker.sendErrors(connection);
         sendError(errors);
-    }).then(() => sendStopProgress());
+    }).then(sendStopProgress);
 }
 
 let fixrepos: Map<string/* uri */, TextLintFixRepository> = new Map();
 
-function validate(doc: TextDocument) {
-    let files = glob.sync(`${workspaceRoot}/.textlintr{c.js,c.yaml,c.yml,c,c.json}`);
-    if (0 < files.length) {
-        let engine = engineFactory(files[0]);
-        let uri = doc.uri;
-        let ext = path.extname(Uri.parse(uri).fsPath);
-        ext = ext ? ext : ".txt";
-        let repo = fixrepos.get(uri);
-        if (repo &&
-            -1 < engine.availableExtensions.findIndex(s => s === ext)) {
-            repo.clear();
-            engine.executeOnText(doc.getText(), ext)
-                .then(([results]) => {
-                    return results.messages
-                        .map(toDiagnostic)
-                        .map(([msg, diag]) => {
-                            repo.register(doc, diag, msg);
-                            return diag;
-                        });
-                }).then(diagnostics => {
-                    connection.sendDiagnostics({ uri, diagnostics });
-                }, errors => sendError(errors));
-
-        }
-    } else {
-        connection.sendNotification(NoConfigNotification.type);
+function validate(doc: TextDocument): Thenable<void> {
+    let uri = doc.uri;
+    TRACE(`validate ${uri}`);
+    if (!textlintModule || uri.startsWith("file:") === false) {
+        TRACE("validation skiped...");
+        return Promise.resolve();
     }
+    let files = glob.sync(`${workspaceRoot}/.textlintr{c.js,c.yaml,c.yml,c,c.json}`);
+    if (files.length < 1) {
+        connection.sendNotification(NoConfigNotification.type);
+        return Promise.resolve();
+    }
+    let repo = fixrepos.get(uri);
+    if (repo) {
+        try {
+            return repo.newEngine(files[0]).then(engine => {
+                let ext = path.extname(Uri.parse(uri).fsPath);
+                TRACE(`engine startd... ${ext}`);
+                if (-1 < engine.availableExtensions.findIndex(s => s === ext)) {
+                    repo.clear();
+                    return engine.executeOnText(doc.getText(), ext)
+                        .then(([results]) => {
+                            return results.messages
+                                .map(toDiagnostic)
+                                .map(([msg, diag]) => {
+                                    repo.register(doc, diag, msg);
+                                    return diag;
+                                });
+                        }).then(diagnostics => {
+                            TRACE(`sendDiagnostics ${uri}`);
+                            connection.sendDiagnostics({ uri, diagnostics });
+                        }, errors => sendError(errors));
+                }
+            });
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    }
+    return Promise.resolve();
 }
 
 function toDiagnosticSeverity(severity?: number): DiagnosticSeverity {
@@ -152,7 +180,6 @@ function toDiagnosticSeverity(severity?: number): DiagnosticSeverity {
 }
 
 function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
-    //TRACE(JSON.stringify(message));
     let txt = message.ruleId ? `${message.message} (${message.ruleId})` : message.message;
     let pos = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1));
     let diag: Diagnostic = {
@@ -166,6 +193,7 @@ function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
 }
 
 connection.onCodeAction(params => {
+    TRACE("onCodeAction", params);
     let result: Command[] = [];
     let uri = params.textDocument.uri;
     let repo = fixrepos.get(uri);
@@ -202,6 +230,7 @@ function toTextEdit(textDocument: TextDocument, af: AutoFix): TextEdit {
 
 connection.onRequest(AllFixesRequest.type, (params: AllFixesRequest.Params) => {
     let uri = params.textDocument.uri;
+    TRACE(`AllFixesRequest ${uri}`);
     let textDocument = documents.get(uri);
     let repo = fixrepos.get(uri);
     if (repo && repo.isEmpty() === false) {
@@ -214,6 +243,7 @@ connection.onRequest(AllFixesRequest.type, (params: AllFixesRequest.Params) => {
 
 let inProgress = 0;
 function sendStartProgress() {
+    TRACE(`sendStartProgress ${inProgress}`);
     if (inProgress < 1) {
         inProgress = 0;
         connection.sendNotification(StartProgressNotification.type);
@@ -222,6 +252,7 @@ function sendStartProgress() {
 }
 
 function sendStopProgress() {
+    TRACE(`sendStopProgress ${inProgress}`);
     if (--inProgress < 1) {
         inProgress = 0;
         connection.sendNotification(StopProgressNotification.type);
@@ -229,13 +260,16 @@ function sendStopProgress() {
 }
 
 function sendOK() {
+    TRACE("sendOK");
     connection.sendNotification(StatusNotification.type, { status: StatusNotification.Status.OK });
 }
 function sendError(error) {
+    TRACE(`sendError ${error}`);
+    let message = error.message ? error.message : error;
     connection.sendNotification(StatusNotification.type,
         {
             status: StatusNotification.Status.ERROR,
-            message: <string>error.message,
+            message,
             cause: error.stack
         });
 }
@@ -249,8 +283,28 @@ process.exit = (code?: number) => {
     }, 1000);
 };
 
-function TRACE(message: string, verbose?: string): void {
-    connection.tracer.log(message, verbose);
+export function TRACE(message: string, data?: any) {
+    switch (trace) {
+        case Trace.Messages:
+            connection.sendNotification(LogTraceNotification.type, {
+                message
+            });
+            break;
+        case Trace.Verbose:
+            let verbose = undefined;
+            if (data) {
+                verbose = typeof data === "string" ? data : JSON.stringify(data);
+            }
+            connection.sendNotification(LogTraceNotification.type, {
+                message, verbose
+            });
+            break;
+        case Trace.Off:
+            // do nothing.
+            break;
+        default:
+            break;
+    }
 }
 
 connection.listen();

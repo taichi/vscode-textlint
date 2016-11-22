@@ -26,3 +26,14 @@ interface TextLintMessage {
     // See src/shared/type/SeverityLevel.js
     severity?: number;
 }
+
+interface TextLintResult {
+    filePath: string;
+    messages: TextLintMessage[];
+}
+
+interface TextLintEngine {
+    availableExtensions: string[];
+
+    executeOnText(text: string, ext: string): Thenable<TextLintResult[]>;
+}

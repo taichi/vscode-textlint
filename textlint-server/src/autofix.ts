@@ -7,9 +7,18 @@ export interface AutoFix {
     ruleId: string;
     fix: TextLintFixCommand;
 }
-
 export class TextLintFixRepository {
     map: Map<string, AutoFix> = new Map();
+
+    constructor(private loader: () => Thenable<any>) {
+    }
+
+    newEngine(configFile: string): Thenable<TextLintEngine> {
+        return this.loader().then(mod => {
+            return new mod.TextLintEngine({ configFile });
+        });
+    }
+
     register(doc: TextDocument, diag: Diagnostic, msg: TextLintMessage) {
         if (msg.fix && msg.ruleId) {
             let fix = {

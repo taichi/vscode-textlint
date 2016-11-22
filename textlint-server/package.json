@@ -8,6 +8,7 @@
   "private": true,
   "dependencies": {
     "glob": "^7.1.1",
+    "vscode-jsonrpc": "^2.4.0",
     "vscode-languageserver": "^2.6.1",
     "vscode-textlint-shared": "^0.2.0",
     "vscode-uri": "^1.0.0"
