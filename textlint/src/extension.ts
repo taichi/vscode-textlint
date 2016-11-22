@@ -90,7 +90,7 @@ function newClient(context: ExtensionContext): LanguageClient {
                 let fsPath = doc.fileName;
                 if (fsPath) {
                     let basename = path.basename(fsPath);
-                    return /^\.textlintrc\./.test(basename);
+                    return /^\.textlintrc/.test(basename);
                 }
             }
         },
