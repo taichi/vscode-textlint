@@ -34,6 +34,9 @@ This extension contributes the following commands to the Command palette.
 
 ## Release Notes
 
+### 0.2.2
+* fix some bug.
+
 ### 0.2.1
 * add progress notification to StatusBar
 
