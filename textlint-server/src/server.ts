@@ -265,11 +265,11 @@ function sendOK() {
 }
 function sendError(error) {
     TRACE(`sendError ${error}`);
-    let message = error.message ? error.message : error;
+    let msg = error.message ? error.message : error;
     connection.sendNotification(StatusNotification.type,
         {
             status: StatusNotification.Status.ERROR,
-            message,
+            message: <string>msg,
             cause: error.stack
         });
 }
