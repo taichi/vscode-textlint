@@ -212,12 +212,20 @@ connection.onRequest(AllFixesRequest.type, (params: AllFixesRequest.Params) => {
     }
 });
 
+let inProgress = 0;
 function sendStartProgress() {
-    connection.sendNotification(StartProgressNotification.type);
+    if (inProgress < 1) {
+        inProgress = 0;
+        connection.sendNotification(StartProgressNotification.type);
+    }
+    inProgress++;
 }
 
 function sendStopProgress() {
-    connection.sendNotification(StopProgressNotification.type);
+    if (--inProgress < 1) {
+        inProgress = 0;
+        connection.sendNotification(StopProgressNotification.type);
+    }
 }
 
 function sendOK() {
