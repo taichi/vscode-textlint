@@ -2,7 +2,7 @@
   "name": "vscode-textlint",
   "displayName": "vscode-textlint",
   "description": "Integrates Textlint into VS Code.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "license": "MIT",
   "publisher": "taichi",
   "engines": {

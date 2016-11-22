@@ -22,6 +22,9 @@ command `Create '.textlintrc' file`.
   * run the linter `onSave` or `onType`, default is `onType`.
 * `textlint.nodePath`
   * use this setting if an installed textlint package can't be detected, for example `/myGlobalNodePackages/node_modules`.
+* `textlint.trace`
+  * Traces the communication between VSCode and the textlint linter service.
+
 
 ## Commands
 
@@ -33,6 +36,9 @@ This extension contributes the following commands to the Command palette.
   * applies textlint auto-fix resolutions to all fixable problems.
 
 ## Release Notes
+
+### 0.2.3
+* add tracing option.
 
 ### 0.2.2
 * fix some bug.
