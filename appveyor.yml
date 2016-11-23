@@ -10,3 +10,9 @@ build_script:
 
 test_script:
   - cd textlint && npm test
+
+cache:
+  - textlint\.vscode-test
+  - textlint\node_modules
+  - textlint-server\node_modules
+  - textlint-shared\node_modules
