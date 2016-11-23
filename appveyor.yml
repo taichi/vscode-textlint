@@ -1,0 +1,12 @@
+install:
+  - npm install -g vsce
+  - cd textlint && npm run install:all
+
+before_build:
+  - cd textlint && npm run lint
+
+build:
+  - cd textlint && vsce package
+
+test:
+  - cd textlint && npm test
