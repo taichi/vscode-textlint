@@ -1,5 +1,5 @@
 dependencies:
   override:
-    - cd textlint && npm run install:client
+    - cd textlint && npm run install:all
     - cd textlint && npm run lint
     - cd textlint && npm run vscode:prepublish
