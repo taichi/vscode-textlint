@@ -1,5 +1,7 @@
 install:
   - npm install -g vsce
+  - cd textlint && npm uninstall vscode-textlint-server vscode-textlint-shared
+  - cd textlint-server && npm uninstall vscode-textlint-shared
   - cd textlint && npm run install:all
 
 before_build:
