@@ -103,7 +103,8 @@
     "postinstall": "npm run vscode:link",
     "lint": "run-p lint:*",
     "lint:client": "tslint src/**.ts",
-    "lint:server": "cd ../textlint-server && npm run lint"
+    "lint:server": "cd ../textlint-server && npm run lint",
+    "test": "node ./node_modules/vscode/bin/test"
   },
   "dependencies": {
     "vscode-jsonrpc": "^2.4.0",
