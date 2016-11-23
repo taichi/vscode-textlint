@@ -5,8 +5,8 @@ install:
 before_build:
   - cd textlint && npm run lint
 
-build:
+build_script:
   - cd textlint && vsce package
 
-test:
+test_script:
   - cd textlint && npm test
