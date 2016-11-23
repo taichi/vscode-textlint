@@ -99,7 +99,10 @@
     "install:client": "npm run install:server && npm install",
     "install:server": "cd ../textlint-server && npm install",
     "vscode:prepublish": "run-s dispose-link install:client compile",
-    "postinstall": "npm run vscode:link"
+    "postinstall": "npm run vscode:link",
+    "lint": "run-p lint:*",
+    "lint:client": "tslint src/**.ts",
+    "lint:server": "cd ../textlint-server && npm run lint"
   },
   "dependencies": {
     "vscode-jsonrpc": "^2.4.0",
