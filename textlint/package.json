@@ -99,7 +99,7 @@
     "install:all": "npm run install:shared && npm run install:server && npm install",
     "install:server": "cd ../textlint-server && npm install",
     "install:shared": "cd ../textlint-shared && npm install",
-    "vscode:prepublish": "run-s dispose-link install:client compile",
+    "vscode:prepublish": "run-s dispose-link install:all compile",
     "postinstall": "npm run vscode:link",
     "lint": "run-p lint:*",
     "lint:client": "tslint src/**.ts",
