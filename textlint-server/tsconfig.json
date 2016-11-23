@@ -4,7 +4,7 @@
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"sourceMap": true,
-		"outDir": "../textlint/server",
+		"outDir": "lib",
 		"lib": [
 			"es6"
 		]
