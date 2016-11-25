@@ -1,10 +1,12 @@
+machine:
+  environment:
+    CI: true
+
 dependencies:
-  pre:
-    - npm install -g vsce
   override:
-    - cd textlint && npm run install:all
+    - cd textlint && npm run install:all 
     - cd textlint && npm run lint
-    - cd textlint && vsce package
+    - cd textlint && npm run compile
 
 test:
   override:

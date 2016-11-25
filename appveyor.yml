@@ -1,20 +1,17 @@
+environment:
+  CI: true
+
 install:
-  - npm install -g vsce
-  - cd textlint && npm uninstall vscode-textlint-server vscode-textlint-shared
-  - cd textlint-server && npm uninstall vscode-textlint-shared
   - cd textlint && npm run install:all
 
 before_build:
   - cd textlint && npm run lint
 
 build_script:
-  - cd textlint && vsce package
+  - cd textlint && npm run compile
 
 test_script:
   - cd textlint && npm test
 
 cache:
   - textlint\.vscode-test
-  - textlint\node_modules
-  - textlint-server\node_modules
-  - textlint-shared\node_modules
