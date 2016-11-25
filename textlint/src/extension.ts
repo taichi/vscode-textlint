@@ -22,7 +22,12 @@ import {
 
 import { Status, StatusBar } from "./status";
 
-export function activate(context: ExtensionContext) {
+export interface ExtensionInternal {
+    client: LanguageClient;
+    statusBar: StatusBar;
+}
+
+export function activate(context: ExtensionContext): ExtensionInternal {
     let client = newClient(context);
     let statusBar = new StatusBar(SUPPORT_LANGUAGES);
     client.onDidChangeState(event => {
@@ -63,6 +68,11 @@ You need to reopen the workspace after installing textlint.`);
         client.start(),
         statusBar
     );
+    // for testing purpse
+    return {
+        client,
+        statusBar
+    };
 }
 
 function newClient(context: ExtensionContext): LanguageClient {

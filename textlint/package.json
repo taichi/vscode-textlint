@@ -104,17 +104,19 @@
     "lint": "run-p lint:*",
     "lint:client": "tslint src/**.ts",
     "lint:server": "cd ../textlint-server && npm run lint",
-    "test": "node ./node_modules/vscode/bin/test"
+    "test": "cross-env CODE_TESTS_WORKSPACE=../test node ./node_modules/vscode/bin/test"
   },
   "dependencies": {
     "vscode-jsonrpc": "^2.4.0",
     "vscode-languageclient": "^2.5.0",
+    "vscode-languageserver-types": "^1.0.4",
     "vscode-textlint-server": "../textlint-server",
     "vscode-textlint-shared": "../textlint-shared"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.32",
     "@types/node": "^6.0.40",
+    "cross-env": "^3.1.3",
     "mocha": "^2.3.3",
     "npm-run-all": "^3.1.1",
     "tslint": "^3.15.1",

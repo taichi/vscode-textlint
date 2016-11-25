@@ -1,22 +1,52 @@
-//
-// Note: This example test is leveraging the Mocha test framework.
-// Please refer to their documentation on https://mochajs.org/ for help.
-//
-
-// The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
-import * as vscode from 'vscode';
-import * as myExtension from '../src/extension';
+import { workspace, window, commands, Uri, Extension, extensions } from 'vscode';
+import { ExtensionInternal } from '../src/extension';
 
-// Defines a Mocha test suite to group tests of similar kind together
+import { PublishDiagnosticsNotification } from "./types";
+
 suite("Extension Tests", () => {
-
-    // Defines a Mocha unit test
-    test("Something 1", () => {
-        assert.equal(-1, [1, 2, 3].indexOf(5));
-        assert.equal(-1, [1, 2, 3].indexOf(0));
+    let extension: Extension<ExtensionInternal>;
+    let internals: ExtensionInternal;
+    setup(done => {
+        extension = extensions.getExtension("taichi.vscode-textlint");
+        extension.activate().then(v => {
+            internals = v;
+            done();
+        });
     });
+
+    suite("basic behavior", () => {
+        test("activate extension", () => {
+            assert(extension.isActive);
+            assert(internals.client);
+            assert(internals.statusBar);
+        });
+    });
+
+    if (!process.env.CI) {
+        suite("with server", function () {
+            setup(done => {
+                internals.client.onReady().then(done);
+            });
+            test("handle file", done => {
+                let data = `${workspace.rootPath}/testtest.txt`;
+                internals.client.onNotification(PublishDiagnosticsNotification.type, (p) => {
+                    let diags = p.diagnostics;
+                    assert(diags);
+                    assert.equal(2, diags.length);
+                    done();
+                });
+                workspace.openTextDocument(data)
+                    .then(doc => window.showTextDocument(doc));
+            });
+        });
+
+    }
 });
+
+
+// https://github.com/Microsoft/vscode-mssql/blob/dev/test/initialization.test.ts
+// https://github.com/HookyQR/VSCodeBeautify/blob/master/test/extension.test.js
+// https://github.com/Microsoft/vscode-docs/blob/master/docs/extensionAPI/vscode-api-commands.md
+// https://github.com/Microsoft/vscode-docs/blob/master/docs/extensionAPI/vscode-api.md
