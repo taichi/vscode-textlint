@@ -1,7 +1,9 @@
-import * as assert from 'assert';
+import * as assert from "assert";
+import * as fs from "fs-extra";
 
-import { workspace, window, commands, Uri, Extension, extensions } from 'vscode';
-import { ExtensionInternal } from '../src/extension';
+
+import { workspace, window, commands, Uri, Extension, extensions } from "vscode";
+import { ExtensionInternal } from "../src/extension";
 
 import { PublishDiagnosticsNotification } from "./types";
 
@@ -24,20 +26,43 @@ suite("Extension Tests", () => {
         });
     });
 
-    suite("with server", function() {
+    suite("with server", function () {
+        let original = `${workspace.rootPath}/testtest.txt`;
+        let newfile = `${workspace.rootPath}/testtest2.txt`;
+        let timelag = () => new Promise(resolve => setTimeout(resolve, 300));
         setup(done => {
             internals.client.onReady().then(done);
+            fs.copySync(original, newfile);
         });
-        test("handle file", done => {
-            let data = `${workspace.rootPath}/testtest.txt`;
-            internals.client.onNotification(PublishDiagnosticsNotification.type, (p) => {
+        teardown(done => {
+            fs.unlink(newfile, err => {
+                commands.executeCommand("workbench.action.closeAllEditors");
+                done();
+            });
+        });
+        test("lint file", done => {
+            internals.client.onNotification(PublishDiagnosticsNotification.type, p => {
                 let diags = p.diagnostics;
                 assert(diags);
                 assert.equal(2, diags.length);
+
+                internals.client.onNotification(PublishDiagnosticsNotification.type, p => 1);
                 done();
             });
-            workspace.openTextDocument(data)
+            workspace.openTextDocument(newfile)
                 .then(doc => window.showTextDocument(doc));
+        });
+        test("fix file", done => {
+            workspace.openTextDocument(newfile)
+                .then(doc => window.showTextDocument(doc))
+                .then(ed => commands.executeCommand("textlint.executeAutofix"))
+                .then(timelag)
+                .then(() => commands.executeCommand("workbench.action.files.save"))
+                .then(() => {
+                    let ed = window.activeTextEditor;
+                    assert(ed.document.getText().indexOf("yuo") < 0);
+                    done();
+                });
         });
     });
 });
