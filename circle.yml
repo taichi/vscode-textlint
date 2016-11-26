@@ -1,6 +1,6 @@
 machine:
-  environment:
-    CI: true
+  node: 
+    version: 6.9 
 
 dependencies:
   override:
@@ -10,4 +10,5 @@ dependencies:
 
 test:
   override:
+    - cd test && npm install
     - cd textlint && npm test

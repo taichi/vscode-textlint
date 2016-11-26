@@ -24,25 +24,22 @@ suite("Extension Tests", () => {
         });
     });
 
-    if (!process.env.CI) {
-        suite("with server", function () {
-            setup(done => {
-                internals.client.onReady().then(done);
-            });
-            test("handle file", done => {
-                let data = `${workspace.rootPath}/testtest.txt`;
-                internals.client.onNotification(PublishDiagnosticsNotification.type, (p) => {
-                    let diags = p.diagnostics;
-                    assert(diags);
-                    assert.equal(2, diags.length);
-                    done();
-                });
-                workspace.openTextDocument(data)
-                    .then(doc => window.showTextDocument(doc));
-            });
+    suite("with server", function() {
+        setup(done => {
+            internals.client.onReady().then(done);
         });
-
-    }
+        test("handle file", done => {
+            let data = `${workspace.rootPath}/testtest.txt`;
+            internals.client.onNotification(PublishDiagnosticsNotification.type, (p) => {
+                let diags = p.diagnostics;
+                assert(diags);
+                assert.equal(2, diags.length);
+                done();
+            });
+            workspace.openTextDocument(data)
+                .then(doc => window.showTextDocument(doc));
+        });
+    });
 });
 
 
