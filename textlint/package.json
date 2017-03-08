@@ -122,7 +122,7 @@
     "mocha": "^2.3.3",
     "npm-run-all": "^3.1.1",
     "tslint": "^3.15.1",
-    "typescript": "^2.0.3",
+    "typescript": "^2.2.1",
     "vscode": "^1.0.0"
   },
   "homepage": "https://github.com/taichi/vscode-textlint",
