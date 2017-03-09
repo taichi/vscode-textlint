@@ -37,6 +37,9 @@ This extension contributes the following commands to the Command palette.
 
 ## Release Notes
 
+### 0.3.0
+* update runtime dependencies
+
 ### 0.2.3
 * add tracing option.
 
