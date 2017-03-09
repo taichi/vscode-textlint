@@ -1,7 +1,7 @@
 {
   "name": "vscode-textlint-shared",
   "private": true,
-  "version": "0.2.6",
+  "version": "0.3.0",
   "description": "shared library for vscode-textlint",
   "author": "taichi",
   "license": "MIT",
@@ -16,12 +16,12 @@
     "watch": "tsc -watch -p ./"
   },
   "dependencies": {
-    "vscode-languageserver-types": "^1.0.4",
-    "vscode-jsonrpc": "^2.4.0"
+    "vscode-languageserver-types": "^3.0.3",
+    "vscode-jsonrpc": "^3.1.0"
   },
   "devDependencies": {
     "@types/node": "^6.0.45",
-    "tslint": "^3.15.1",
+    "tslint": "^4.5.1",
     "typescript": "^2.2.1"
   },
   "homepage": "https://github.com/taichi/vscode-textlint",

@@ -51,7 +51,7 @@ connection.onDidChangeWatchedFiles(params => {
     TRACE("onDidChangeWatchedFiles");
     params.changes.forEach(event => {
         if (event.uri.endsWith("package.json") &&
-            (event.type === FileChangeType.Changed || event.type === FileChangeType.Changed)) {
+            (event.type === FileChangeType.Created || event.type === FileChangeType.Changed)) {
             textlintModule = null;
         }
     });
@@ -291,7 +291,7 @@ export function TRACE(message: string, data?: any) {
             });
             break;
         case Trace.Verbose:
-            let verbose = undefined;
+            let verbose = "";
             if (data) {
                 verbose = typeof data === "string" ? data : JSON.stringify(data);
             }

@@ -12,7 +12,9 @@
             ],
             "stopOnEntry": false,
             "sourceMaps": true,
-            "outDir": "${workspaceRoot}/out/src",
+            "outFiles": [
+                "${workspaceRoot}/out/src/**/*.js"
+            ],
             "preLaunchTask": "npm"
         },
         {
@@ -27,7 +29,9 @@
             ],
             "stopOnEntry": false,
             "sourceMaps": true,
-            "outDir": "${workspaceRoot}/out/test",
+            "outFiles": [
+                "${workspaceRoot}/out/test/**/*.js"
+            ],
             "preLaunchTask": "npm"
         }
     ]

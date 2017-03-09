@@ -2,11 +2,11 @@
   "name": "vscode-textlint",
   "displayName": "vscode-textlint",
   "description": "Integrates Textlint into VS Code.",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "license": "MIT",
   "publisher": "taichi",
   "engines": {
-    "vscode": "^1.6.0"
+    "vscode": "^1.10.0"
   },
   "icon": "textlint-icon_128x128.png",
   "galleryBanner": {
@@ -107,9 +107,9 @@
     "test": "cross-env CODE_TESTS_WORKSPACE=../test node ./node_modules/vscode/bin/test"
   },
   "dependencies": {
-    "vscode-jsonrpc": "^2.4.0",
-    "vscode-languageclient": "^2.5.0",
-    "vscode-languageserver-types": "^1.0.4",
+    "vscode-jsonrpc": "^3.1.0",
+    "vscode-languageclient": "^3.1.0",
+    "vscode-languageserver-types": "^3.0.3",
     "vscode-textlint-server": "../textlint-server",
     "vscode-textlint-shared": "../textlint-shared"
   },
@@ -121,7 +121,7 @@
     "fs-extra": "^1.0.0",
     "mocha": "^2.3.3",
     "npm-run-all": "^3.1.1",
-    "tslint": "^3.15.1",
+    "tslint": "^4.5.1",
     "typescript": "^2.2.1",
     "vscode": "^1.0.0"
   },

@@ -11,11 +11,19 @@ suite("Extension Tests", () => {
     let extension: Extension<ExtensionInternal>;
     let internals: ExtensionInternal;
     setup(done => {
-        extension = extensions.getExtension("taichi.vscode-textlint");
-        extension.activate().then(v => {
-            internals = v;
-            done();
-        });
+        commands.executeCommand("textlint.showOutputChannel");
+
+        function waitForActive(resolve): void {
+            let ext = extensions.getExtension("taichi.vscode-textlint");
+            if (typeof ext === "undefined" || ext.isActive === false) {
+                setTimeout(waitForActive.bind(null, resolve), 50);
+            } else {
+                extension = ext;
+                internals = ext.exports;
+                resolve();
+            }
+        }
+        waitForActive(done);
     });
 
     suite("basic behavior", () => {
@@ -66,7 +74,6 @@ suite("Extension Tests", () => {
         });
     });
 });
-
 
 // https://github.com/Microsoft/vscode-mssql/blob/dev/test/initialization.test.ts
 // https://github.com/HookyQR/VSCodeBeautify/blob/master/test/extension.test.js

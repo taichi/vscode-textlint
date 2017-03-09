@@ -6,7 +6,7 @@ import {
 } from "vscode";
 
 import {
-    LanguageClient, LanguageClientOptions, ServerOptions, TextEdit, Protocol2Code,
+    LanguageClient, LanguageClientOptions, ServerOptions, TextEdit,
     State as ServerState,
     ErrorHandler, ErrorAction, CloseAction,
     TransportKind, RevealOutputChannelOn
@@ -30,36 +30,38 @@ export interface ExtensionInternal {
 export function activate(context: ExtensionContext): ExtensionInternal {
     let client = newClient(context);
     let statusBar = new StatusBar(SUPPORT_LANGUAGES);
-    client.onDidChangeState(event => {
-        statusBar.serverRunning = event.newState === ServerState.Running;
-    });
-    client.onNotification(StatusNotification.type, (p: StatusNotification.StatusParams) => {
-        statusBar.status = to(p.status);
-        if (p.message || p.cause) {
-            statusBar.status.log(client, p.message, p.cause);
-        }
-    });
-    client.onNotification(NoConfigNotification.type, p => {
-        statusBar.status = Status.WARN;
-        statusBar.status.log(client, `
+    client.onReady().then(() => {
+        client.onDidChangeState(event => {
+            statusBar.serverRunning = event.newState === ServerState.Running;
+        });
+        client.onNotification(StatusNotification.type, (p: StatusNotification.StatusParams) => {
+            statusBar.status = to(p.status);
+            if (p.message || p.cause) {
+                statusBar.status.log(client, p.message, p.cause);
+            }
+        });
+        client.onNotification(NoConfigNotification.type, () => {
+            statusBar.status = Status.WARN;
+            statusBar.status.log(client, `
 No textlint configuration (e.g .textlintrc) found.
 File will not be validated. Consider running the 'Create .textlintrc file' command.`);
-    });
-    client.onNotification(NoLibraryNotification.type, p => {
-        statusBar.status = Status.ERROR;
-        statusBar.status.log(client, `
+        });
+        client.onNotification(NoLibraryNotification.type, () => {
+            statusBar.status = Status.ERROR;
+            statusBar.status.log(client, `
 Failed to load the textlint library.
 To use textlint in this workspace please install textlint using \'npm install textlint\' or globally using \'npm install -g textlint\'.
 You need to reopen the workspace after installing textlint.`);
+        });
+        client.onNotification(StartProgressNotification.type, () => statusBar.startProgress());
+        client.onNotification(StopProgressNotification.type, () => statusBar.stopProgress());
+
+        client.onNotification(LogTraceNotification.type, p => client.info(p.message, p.verbose));
+        let changeConfigHandler = () => configureAutoFixOnSave(client);
+        workspace.onDidChangeConfiguration(changeConfigHandler);
+        changeConfigHandler();
+
     });
-    client.onNotification(StartProgressNotification.type, () => statusBar.startProgress());
-    client.onNotification(StopProgressNotification.type, () => statusBar.stopProgress());
-
-    client.onNotification(LogTraceNotification.type, p => client.info(p.message, p.verbose));
-    let changeConfigHandler = () => configureAutoFixOnSave(client);
-    workspace.onDidChangeConfiguration(changeConfigHandler);
-    changeConfigHandler();
-
     context.subscriptions.push(
         commands.registerCommand("textlint.createConfig", createConfig),
         commands.registerCommand("textlint.applyTextEdits", makeApplyFixFn(client)),
@@ -123,8 +125,10 @@ function newClient(context: ExtensionContext): LanguageClient {
 
     let client = new LanguageClient("textlint", serverOptions, clientOptions);
     defaultErrorHandler = client.createDefaultErrorHandler();
-    client.onNotification(ExitNotification.type, p => {
-        serverCalledProcessExit = true;
+    client.onReady().then(() => {
+        client.onNotification(ExitNotification.type, () => {
+            serverCalledProcessExit = true;
+        });
     });
     return client;
 }
@@ -158,7 +162,7 @@ function configureAutoFixOnSave(client: LanguageClient) {
                     client.sendRequest(AllFixesRequest.type,
                         { textDocument: { uri } }).then((result: AllFixesRequest.Result) => {
                             return result && result.documentVersion === version ?
-                                Protocol2Code.asTextEdits(result.edits) :
+                                client.protocol2CodeConverter.asTextEdits(result.edits) :
                                 [];
                         })
                 );
@@ -204,7 +208,7 @@ function applyTextEdits(client: LanguageClient, uri: string, documentVersion: nu
     if (textEditor && textEditor.document.uri.toString() === uri) {
         if (textEditor.document.version === documentVersion) {
             textEditor.edit(mutator => {
-                edits.forEach(ed => mutator.replace(Protocol2Code.asRange(ed.range), ed.newText));
+                edits.forEach(ed => mutator.replace(client.protocol2CodeConverter.asRange(ed.range), ed.newText));
             }).then(ok => {
                 // do nothing
             }, errors => {

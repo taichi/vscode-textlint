@@ -1,5 +1,5 @@
 
-import { NotificationType, RequestType } from "vscode-jsonrpc";
+import { NotificationType0, NotificationType, RequestType } from "vscode-jsonrpc";
 import { TextDocumentIdentifier, TextEdit } from "vscode-languageserver-types";
 
 export const SUPPORT_LANGUAGES = ["plaintext", "markdown", "html"];
@@ -9,7 +9,7 @@ export namespace ExitNotification {
         code: number;
         message: string;
     }
-    export const type: NotificationType<ExitParams> = { method: "textlint/exit" };
+    export const type = new NotificationType<ExitParams, void>("textlint/exit");
 }
 
 export namespace StatusNotification {
@@ -23,15 +23,15 @@ export namespace StatusNotification {
         message?: string;
         cause?: any;
     }
-    export const type: NotificationType<StatusParams> = { method: "textlint/status" };
+    export const type = new NotificationType<StatusParams, void>("textlint/status");
 }
 
 export namespace NoConfigNotification {
-    export const type: NotificationType<void> = { method: "textlint/noconfig" };
+    export const type = new NotificationType0<void>("textlint/noconfig");
 }
 
 export namespace NoLibraryNotification {
-    export const type: NotificationType<void> = { method: "textlint/nolibrary" };
+    export const type = new NotificationType0<void>("textlint/nolibrary");
 }
 
 export namespace AllFixesRequest {
@@ -44,13 +44,13 @@ export namespace AllFixesRequest {
         edits: TextEdit[];
     }
 
-    export const type: RequestType<Params, Result, void> = { method: "textDocument/textlint/allFixes" };
+    export const type = new RequestType<Params, Result, void, void>("textDocument/textlint/allFixes");
 }
 
 export namespace StartProgressNotification {
-    export const type: NotificationType<void> = { method: "textlint/progress/start" };
+    export const type = new NotificationType0<void>("textlint/progress/start");
 }
 
 export namespace StopProgressNotification {
-    export const type: NotificationType<void> = { method: "textlint/progress/stop" };
+    export const type = new NotificationType0<void>("textlint/progress/stop");
 }
