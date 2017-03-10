@@ -9,6 +9,7 @@ import { Trace, LogTraceNotification } from "vscode-jsonrpc";
 
 import Uri from "vscode-uri";
 
+import * as os from "os";
 import * as path from "path";
 import * as glob from "glob";
 
@@ -127,6 +128,18 @@ function validateMany(textDocuments: TextDocument[]) {
     }).then(sendStopProgress);
 }
 
+function findConfig(): string {
+    let roots = [workspaceRoot, os.homedir()];
+    for (const p of roots) {
+        let files = glob.sync(`${p}/.textlintr{c.js,c.yaml,c.yml,c,c.json}`);
+        if (0 < files.length) {
+            return files[0];
+        }
+    }
+    connection.sendNotification(NoConfigNotification.type);
+    return "";
+}
+
 let fixrepos: Map<string/* uri */, TextLintFixRepository> = new Map();
 
 function validate(doc: TextDocument): Thenable<void> {
@@ -136,15 +149,12 @@ function validate(doc: TextDocument): Thenable<void> {
         TRACE("validation skiped...");
         return Promise.resolve();
     }
-    let files = glob.sync(`${workspaceRoot}/.textlintr{c.js,c.yaml,c.yml,c,c.json}`);
-    if (files.length < 1) {
-        connection.sendNotification(NoConfigNotification.type);
-        return Promise.resolve();
-    }
+    let conf = findConfig();
     let repo = fixrepos.get(uri);
-    if (repo) {
+    if (conf && repo) {
         try {
-            return repo.newEngine(files[0]).then(engine => {
+            TRACE(`configuration file is ${conf}`);
+            return repo.newEngine(conf).then(engine => {
                 let ext = path.extname(Uri.parse(uri).fsPath);
                 TRACE(`engine startd... ${ext}`);
                 if (-1 < engine.availableExtensions.findIndex(s => s === ext)) {
