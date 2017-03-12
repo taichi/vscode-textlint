@@ -30,6 +30,11 @@
       "type": "object",
       "title": "textlint",
       "properties": {
+        "textlint.configPath": {
+          "type": "string",
+          "default": null,
+          "description": "A absolute path to textlint config file."
+        },
         "textlint.nodePath": {
           "type": "string",
           "default": null,

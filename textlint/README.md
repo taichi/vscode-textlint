@@ -24,7 +24,9 @@ command `Create '.textlintrc' file`.
   * use this setting if an installed textlint package can't be detected, for example `/myGlobalNodePackages/node_modules`.
 * `textlint.trace`
   * Traces the communication between VSCode and the textlint linter service.
-
+* `textlint.configPath`
+  * absolute path to textlint config file.
+  * workspace settings are prioritize.
 
 ## Commands
 
@@ -36,6 +38,9 @@ This extension contributes the following commands to the Command palette.
   * applies textlint auto-fix resolutions to all fixable problems.
 
 ## Release Notes
+
+### 0.5.0
+* add `configPath` to configuration. recommend to use your user settings.
 
 ### 0.4.0
 * read configuration file from `HOME` dir

@@ -78,12 +78,12 @@ You need to reopen the workspace after installing textlint.`);
 }
 
 function newClient(context: ExtensionContext): LanguageClient {
-    let serverModule = require.resolve("vscode-textlint-server");
+    let module = require.resolve("vscode-textlint-server");
     let debugOptions = { execArgv: ["--nolazy", "--debug=6004"] };
 
     let serverOptions: ServerOptions = {
-        run: { module: serverModule, transport: TransportKind.ipc },
-        debug: { module: serverModule, transport: TransportKind.ipc, options: debugOptions }
+        run: { module, transport: TransportKind.ipc },
+        debug: { module, transport: TransportKind.ipc, options: debugOptions }
     };
 
     let defaultErrorHandler: ErrorHandler;
@@ -101,7 +101,9 @@ function newClient(context: ExtensionContext): LanguageClient {
         },
         initializationOptions: () => {
             return {
+                configPath: getConfig("configPath"),
                 nodePath: getConfig("nodePath"),
+                run: getConfig("run"),
                 trace: getConfig("trace", "off")
             };
         },

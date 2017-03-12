@@ -9,6 +9,7 @@ import { Trace, LogTraceNotification } from "vscode-jsonrpc";
 import Uri from "vscode-uri";
 
 import * as os from "os";
+import * as fs from "fs";
 import * as path from "path";
 import * as glob from "glob";
 
@@ -23,7 +24,6 @@ import { TextLintFixRepository, AutoFix } from "./autofix";
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
 let documents: TextDocuments = new TextDocuments();
 let workspaceRoot: string;
-let nodePath: string;
 let trace: number;
 let textlintModule;
 let settings;
@@ -31,9 +31,8 @@ documents.listen(connection);
 
 connection.onInitialize(params => {
     workspaceRoot = params.rootPath;
-    let opts = params.initializationOptions;
-    nodePath = opts.nodePath;
-    trace = Trace.fromString(opts.trace);
+    settings = params.initializationOptions;
+    trace = Trace.fromString(settings.trace);
     return resolveTextLint().then(() => {
         return {
             capabilities: {
@@ -44,8 +43,13 @@ connection.onInitialize(params => {
     });
 });
 connection.onDidChangeConfiguration(change => {
-    settings = change.settings.textlint;
-    trace = Trace.fromString(settings.trace);
+    let newone = change.settings.textlint;
+    TRACE(`onDidChangeConfiguration ${JSON.stringify(newone)}`);
+    if (settings.nodePath !== newone.nodePath) {
+        textlintModule = null;
+    }
+    settings = newone;
+    trace = Trace.fromString(newone.trace);
     return validateMany(documents.all());
 });
 connection.onDidChangeWatchedFiles(params => {
@@ -75,7 +79,7 @@ documents.onDidSave(event => {
 });
 
 function resolveTextLint(): Thenable<any> {
-    return Files.resolveModule2(workspaceRoot, "textlint", nodePath, TRACE)
+    return Files.resolveModule2(workspaceRoot, "textlint", settings.nodePath, TRACE)
         .then(value => value, error => {
             connection.sendNotification(NoLibraryNotification.type);
             return Promise.reject(error);
@@ -128,10 +132,16 @@ function validateMany(textDocuments: TextDocument[]) {
     }).then(sendStopProgress);
 }
 
+function candidates(root: string) {
+    return () => glob.sync(`${root}/.textlintr{c.js,c.yaml,c.yml,c,c.json}`);
+}
+
 function findConfig(): string {
-    let roots = [workspaceRoot, os.homedir()];
-    for (const p of roots) {
-        let files = glob.sync(`${p}/.textlintr{c.js,c.yaml,c.yml,c,c.json}`);
+    let roots = [candidates(workspaceRoot), () => {
+        return fs.existsSync(settings.configPath) ? [settings.configPath] : [];
+    }, candidates(os.homedir())];
+    for (const fn of roots) {
+        let files = fn();
         if (0 < files.length) {
             return files[0];
         }
