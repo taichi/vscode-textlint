@@ -1,5 +1,4 @@
 {
     "textlint.run": "onType",
-    "textlint.autoFixOnSave": false,
-    "textlint.trace": "verbose"
+    "textlint.autoFixOnSave": false
 }
