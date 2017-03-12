@@ -5,8 +5,7 @@ import {
     ErrorMessageTracker, IPCMessageReader, IPCMessageWriter
 } from "vscode-languageserver";
 
-import { Trace, LogTraceNotification } from "vscode-jsonrpc";
-
+import { NotificationType, Trace, LogTraceNotification } from "vscode-jsonrpc";
 import Uri from "vscode-uri";
 
 import * as os from "os";
@@ -14,9 +13,10 @@ import * as path from "path";
 import * as glob from "glob";
 
 import {
-    StatusNotification, NoConfigNotification, NoLibraryNotification, ExitNotification, AllFixesRequest,
+    NoConfigNotification, NoLibraryNotification, ExitNotification,
+    AllFixesRequest, StatusNotification,
     StartProgressNotification, StopProgressNotification
-} from "vscode-textlint-shared";
+} from "./types";
 
 import { TextLintFixRepository, AutoFix } from "./autofix";
 
@@ -77,7 +77,7 @@ documents.onDidSave(event => {
 function resolveTextLint(): Thenable<any> {
     return Files.resolveModule2(workspaceRoot, "textlint", nodePath, TRACE)
         .then(value => value, error => {
-            connection.sendNotification(NoLibraryNotification.type);
+            connection.sendNotification<void>(NoLibraryNotification.type);
             return Promise.reject(error);
         }).then(mod => textlintModule = mod);
 }
@@ -136,7 +136,7 @@ function findConfig(): string {
             return files[0];
         }
     }
-    connection.sendNotification(NoConfigNotification.type);
+    connection.sendNotification<void>(NoConfigNotification.type);
     return "";
 }
 

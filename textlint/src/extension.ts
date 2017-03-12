@@ -18,7 +18,7 @@ import {
     SUPPORT_LANGUAGES,
     StatusNotification, NoConfigNotification, NoLibraryNotification, ExitNotification, AllFixesRequest,
     StartProgressNotification, StopProgressNotification
-} from "vscode-textlint-shared";
+} from "./types";
 
 import { Status, StatusBar } from "./status";
 
