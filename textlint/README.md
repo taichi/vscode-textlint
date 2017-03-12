@@ -39,6 +39,7 @@ This extension contributes the following commands to the Command palette.
 
 ### 0.4.0
 * read configuration file from `HOME` dir
+  * if you want to use global configuration, you should install textlint and plugins globally.
 
 ### 0.3.0
 * update runtime dependencies
