@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "textlint"
+		},
+		{
+			"path": "textlint-server"
+		}
+	],
+	"settings": {}
+}
