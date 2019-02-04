@@ -294,15 +294,6 @@ function sendError(error) {
         });
 }
 
-const nodeExit = process.exit;
-process.exit = (code?: number) => {
-    let stack = new Error("stack");
-    connection.sendNotification(ExitNotification.type, { code: code ? code : 0, message: stack.stack });
-    setTimeout(() => {
-        nodeExit(code);
-    }, 1000);
-};
-
 export function TRACE(message: string, data?: any) {
     switch (trace) {
         case Trace.Messages:
