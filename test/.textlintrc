@@ -1,4 +1,5 @@
 {
+  "plugins": [ "latex2e" ],
   "filters": {},
   "rules": {
     "no-todo": true,
