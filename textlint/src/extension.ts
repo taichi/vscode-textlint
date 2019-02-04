@@ -87,7 +87,9 @@ function newClient(context: ExtensionContext): LanguageClient {
     };
 
     let defaultErrorHandler: ErrorHandler;
-    let languages = SUPPORT_LANGUAGES;
+    let languages = SUPPORT_LANGUAGES.map(id => {
+        return { language: id, scheme: 'file' };
+    });
     let serverCalledProcessExit = false;
     let clientOptions: LanguageClientOptions = {
         documentSelector: languages,
