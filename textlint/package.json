@@ -104,7 +104,7 @@
     "dispose-link:client": "npm uninstall @taichi/vscode-textlint-server",
     "install:all": "run-p install:client",
     "install:client": "npm install @taichi/vscode-textlint-server",
-    "vscode:prepublish": "run-s clean:all install:all compile",
+    "vscode:prepublish": "run-s clean:all install:all compile:client",
     "postinstall": "npm run vscode:link",
     "lint": "run-p lint:*",
     "lint:client": "tslint src/**.ts",
