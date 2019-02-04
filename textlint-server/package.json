@@ -1,11 +1,13 @@
 {
-  "name": "vscode-textlint-server",
+  "name": "@taichi/vscode-textlint-server",
   "version": "0.6.4",
   "description": "Textlint Linter Server",
   "engines": {
     "node": "*"
   },
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "lib/server.js",
   "files": [
     "lib"
