@@ -20,6 +20,9 @@
     "onLanguage:plaintext",
     "onLanguage:markdown",
     "onLanguage:html",
+    "onLanguage:tex",
+    "onLanguage:latex",
+    "onLanguage:doctex",
     "onCommand:textlint.showOutputChannel",
     "onCommand:textlint.createConfig",
     "onCommand:textlint.executeAutofix"
