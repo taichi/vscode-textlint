@@ -1,6 +1,6 @@
 import {
     createConnection, IConnection, FileChangeType,
-    Command, Diagnostic, DiagnosticSeverity, Position, Range, Files,
+    CodeAction, CodeActionKind, Command, Diagnostic, DiagnosticSeverity, Position, Range, Files,
     TextDocuments, TextDocument, TextEdit,
     ErrorMessageTracker, IPCMessageReader, IPCMessageWriter
 } from "vscode-languageserver";
@@ -214,27 +214,27 @@ function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
 
 connection.onCodeAction(params => {
     TRACE("onCodeAction", params);
-    let result: Command[] = [];
+    let result: CodeAction[] = [];
     let uri = params.textDocument.uri;
     let repo = fixrepos.get(uri);
     if (repo && repo.isEmpty() === false) {
         let doc = documents.get(uri);
-        let toCMD = (title, edits) =>
-            Command.create(title,
-                "textlint.applyTextEdits",
-                uri, repo.version, edits);
+        let toAction = (title, edits) => {
+            let cmd = Command.create(title, "textlint.applyTextEdits", uri, repo.version, edits);
+            return CodeAction.create(title, cmd, CodeActionKind.QuickFix);
+        };
         let toTE = af => toTextEdit(doc, af);
 
         repo.find(params.context.diagnostics).forEach(af => {
-            result.push(toCMD(`Fix this ${af.ruleId} problem`, [toTE(af)]));
+            result.push(toAction(`Fix this ${af.ruleId} problem`, [toTE(af)]));
             let same = repo.separatedValues(v => v.ruleId === af.ruleId);
             if (0 < same.length) {
-                result.push(toCMD(`Fix all ${af.ruleId} problems`, same.map(toTE)));
+                result.push(toAction(`Fix all ${af.ruleId} problems`, same.map(toTE)));
             }
         });
         let all = repo.separatedValues();
         if (0 < all.length) {
-            result.push(toCMD(`Fix all auto-fixable problems`, all.map(toTE)));
+            result.push(toAction(`Fix all auto-fixable problems`, all.map(toTE)));
         }
     }
     return result;
