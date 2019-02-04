@@ -2,7 +2,7 @@
   "name": "vscode-textlint",
   "displayName": "vscode-textlint",
   "description": "Integrates Textlint into VS Code.",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "license": "MIT",
   "publisher": "taichi",
   "engines": {
@@ -112,6 +112,7 @@
     "test": "cross-env CODE_TESTS_WORKSPACE=../test node ./node_modules/vscode/bin/test"
   },
   "dependencies": {
+    "@taichi/vscode-textlint-server": "file:../textlint-server",
     "vscode-languageclient": "^5.2.1",
     "vscode-uri": "^1.0.1"
   },
