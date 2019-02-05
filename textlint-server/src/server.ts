@@ -19,7 +19,7 @@ import {
     StartProgressNotification, StopProgressNotification
 } from "./types";
 
-import { TextLintFixRepository, AutoFix } from "./autofix";
+import { TextlintFixRepository, AutoFix } from "./autofix";
 
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
 let documents: TextDocuments = new TextDocuments();
@@ -28,12 +28,13 @@ let trace: number;
 let textlintModule;
 let settings;
 documents.listen(connection);
+let fixrepos: Map<string/* uri */, TextlintFixRepository> = new Map();
 
 connection.onInitialize(params => {
     workspaceRoot = params.rootPath;
     settings = params.initializationOptions;
     trace = Trace.fromString(settings.trace);
-    return resolveTextLint().then(() => {
+    return resolveTextlint().then(() => {
         return {
             capabilities: {
                 textDocumentSync: documents.syncKind,
@@ -78,7 +79,7 @@ documents.onDidSave(event => {
     }
 });
 
-function resolveTextLint(): Thenable<any> {
+function resolveTextlint(): Thenable<any> {
     return Files.resolveModule2(workspaceRoot, "textlint", settings.nodePath, TRACE)
         .then(value => value, error => {
             connection.sendNotification(NoLibraryNotification.type);
@@ -86,15 +87,16 @@ function resolveTextLint(): Thenable<any> {
         }).then(mod => textlintModule = mod);
 }
 
+
 documents.onDidOpen(event => {
     let uri = event.document.uri;
     TRACE(`onDidOpen ${uri}`);
     if (uri.startsWith("file:") && fixrepos.has(uri) === false) {
-        fixrepos.set(uri, new TextLintFixRepository(() => {
+        fixrepos.set(uri, new TextlintFixRepository(() => {
             if (textlintModule) {
                 return Promise.resolve(textlintModule);
             }
-            return resolveTextLint();
+            return resolveTextlint();
         }));
     }
 });
@@ -149,8 +151,6 @@ function findConfig(): string {
     connection.sendNotification(NoConfigNotification.type);
     return "";
 }
-
-let fixrepos: Map<string/* uri */, TextLintFixRepository> = new Map();
 
 function validate(doc: TextDocument): Thenable<void> {
     let uri = doc.uri;

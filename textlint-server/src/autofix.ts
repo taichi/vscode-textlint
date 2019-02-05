@@ -7,7 +7,7 @@ export interface AutoFix {
     ruleId: string;
     fix: TextLintFixCommand;
 }
-export class TextLintFixRepository {
+export class TextlintFixRepository {
     map: Map<string, AutoFix> = new Map();
 
     constructor(private loader: () => Thenable<any>) {
@@ -77,7 +77,7 @@ export class TextLintFixRepository {
         let result: AutoFix[] = [];
         result.push(sv[0]);
         sv.reduce((prev, cur) => {
-            if (TextLintFixRepository.overlaps(prev, cur) === false) {
+            if (TextlintFixRepository.overlaps(prev, cur) === false) {
                 result.push(cur);
                 return cur;
             }
