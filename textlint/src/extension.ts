@@ -98,7 +98,9 @@ function newClient(context: ExtensionContext): LanguageClient {
         synchronize: {
             configurationSection: "textlint",
             fileEvents: [
-                workspace.createFileSystemWatcher("**/package.json")
+                workspace.createFileSystemWatcher("**/package.json"),
+                workspace.createFileSystemWatcher('**/.textlintrc'),
+                workspace.createFileSystemWatcher('**/.textlintrc.{js,json,yml,yaml}')
             ]
         },
         initializationOptions: () => {

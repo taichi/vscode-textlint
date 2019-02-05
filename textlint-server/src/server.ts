@@ -43,25 +43,25 @@ connection.onInitialize(params => {
         };
     });
 });
+
+function rewind() {
+    return resolveTextlint().then(() => {
+        fixrepos.clear();
+        documents.all().forEach(doc => setupTextlintFixRepository(doc.uri));
+        return validateMany(documents.all());
+    })
+}
+
 connection.onDidChangeConfiguration(change => {
     let newone = change.settings.textlint;
     TRACE(`onDidChangeConfiguration ${JSON.stringify(newone)}`);
-    if (settings.nodePath !== newone.nodePath) {
-        textlintModule = null;
-    }
     settings = newone;
     trace = Trace.fromString(newone.trace);
-    return validateMany(documents.all());
+    return rewind();
 });
 connection.onDidChangeWatchedFiles(params => {
     TRACE("onDidChangeWatchedFiles");
-    params.changes.forEach(event => {
-        if (event.uri.endsWith("package.json") &&
-            (event.type === FileChangeType.Created || event.type === FileChangeType.Changed)) {
-            textlintModule = null;
-        }
-    });
-    return validateMany(documents.all());
+    return rewind();
 });
 
 documents.onDidChangeContent(event => {
@@ -87,10 +87,7 @@ function resolveTextlint(): Thenable<any> {
         }).then(mod => textlintModule = mod);
 }
 
-
-documents.onDidOpen(event => {
-    let uri = event.document.uri;
-    TRACE(`onDidOpen ${uri}`);
+function setupTextlintFixRepository(uri) {
     if (uri.startsWith("file:") && fixrepos.has(uri) === false) {
         fixrepos.set(uri, new TextlintFixRepository(() => {
             if (textlintModule) {
@@ -99,6 +96,12 @@ documents.onDidOpen(event => {
             return resolveTextlint();
         }));
     }
+}
+
+documents.onDidOpen(event => {
+    let uri = event.document.uri;
+    TRACE(`onDidOpen ${uri}`);
+    setupTextlintFixRepository(uri);
 });
 documents.onDidClose(event => {
     // cleanup errors
