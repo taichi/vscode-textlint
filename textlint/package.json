@@ -96,7 +96,7 @@
     "compile": "run-p compile:*",
     "compile:client": "tsc -p ./",
     "compile:server": "cd ../textlint-server && npm run compile",
-    "watch": "npm-run-all prepare --parallel watch:*",
+    "watch": "npm-run-all prepare:dev --parallel watch:*",
     "watch:client": "tsc -watch -p ./",
     "watch:server": "cd ../textlint-server && npm run watch",
     "vscode:link": "node ./node_modules/vscode/bin/install",
