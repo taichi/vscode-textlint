@@ -46,9 +46,15 @@ connection.onInitialize(params => {
 
 function rewind() {
     return resolveTextlint().then(() => {
-        fixrepos.clear();
-        documents.all().forEach(doc => setupTextlintFixRepository(doc.uri));
-        return validateMany(documents.all());
+        let docs = [...fixrepos.keys()].map(uri => {
+            clearDiagnostics(uri);
+            let d = documents.get(uri);
+            if (d) {
+                configureLint(uri);
+                return d;
+            }
+        }).filter(d => d);
+        return docs ? validateMany(docs) : null;
     })
 }
 
@@ -87,7 +93,7 @@ function resolveTextlint(): Thenable<any> {
         }).then(mod => textlintModule = mod);
 }
 
-function setupTextlintFixRepository(uri) {
+function configureLint(uri) {
     if (uri.startsWith("file:") && fixrepos.has(uri) === false) {
         fixrepos.set(uri, new TextlintFixRepository(() => {
             if (textlintModule) {
@@ -101,15 +107,19 @@ function setupTextlintFixRepository(uri) {
 documents.onDidOpen(event => {
     let uri = event.document.uri;
     TRACE(`onDidOpen ${uri}`);
-    setupTextlintFixRepository(uri);
+    configureLint(uri);
 });
-documents.onDidClose(event => {
-    // cleanup errors
-    let uri = event.document.uri;
+
+function clearDiagnostics(uri) {
     if (uri.startsWith("file:")) {
         fixrepos.delete(uri);
         connection.sendDiagnostics({ uri, diagnostics: [] });
     }
+}
+documents.onDidClose(event => {
+    let uri = event.document.uri;
+    TRACE(`onDidOpen ${uri}`);
+    clearDiagnostics(uri);
 });
 
 function validateSingle(textDocument: TextDocument) {
