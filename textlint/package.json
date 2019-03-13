@@ -49,7 +49,7 @@
             "onSave",
             "onType"
           ],
-          "default": "onType",
+          "default": "onSave",
           "description": "Run the linter on save (onSave) or on type (onType)"
         },
         "textlint.autoFixOnSave": {
