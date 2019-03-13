@@ -6,6 +6,7 @@
   "dependencies": {},
   "devDependencies": {
     "textlint": "^11.2.1",
+    "textlint-plugin-html": "^0.2.0",
     "textlint-plugin-latex2e": "0.1.5",
     "textlint-rule-common-misspellings": "^1.0.1",
     "textlint-rule-no-todo": "^2.0.0",
