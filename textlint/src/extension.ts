@@ -2,7 +2,7 @@ import * as path from "path";
 import * as fs from "fs";
 
 import {
-    workspace, window, commands, ExtensionContext, Disposable, TextDocumentSaveReason
+    workspace, window, commands, ExtensionContext, Disposable, TextDocumentSaveReason, TextEditor
 } from "vscode";
 
 import {
@@ -25,6 +25,7 @@ import { Status, StatusBar } from "./status";
 export interface ExtensionInternal {
     client: LanguageClient;
     statusBar: StatusBar;
+    onAllFixesComplete(fn: (te: TextEditor, edits: TextEdit[], ok: boolean) => void);
 }
 
 export function activate(context: ExtensionContext): ExtensionInternal {
@@ -73,7 +74,8 @@ You need to reopen the workspace after installing textlint.`);
     // for testing purpse
     return {
         client,
-        statusBar
+        statusBar,
+        onAllFixesComplete
     };
 }
 
@@ -191,9 +193,9 @@ function makeAutoFixFn(client: LanguageClient) {
         if (textEditor) {
             let uri: string = textEditor.document.uri.toString();
             client.sendRequest(AllFixesRequest.type, { textDocument: { uri } })
-                .then((result: AllFixesRequest.Result) => {
+                .then(async (result: AllFixesRequest.Result) => {
                     if (result) {
-                        applyTextEdits(client, uri, result.documentVersion, result.edits);
+                        await applyTextEdits(client, uri, result.documentVersion, result.edits);
                     }
                 }, error => {
                     client.error("Failed to apply textlint fixes to the document.", error);
@@ -203,24 +205,32 @@ function makeAutoFixFn(client: LanguageClient) {
 }
 
 function makeApplyFixFn(client: LanguageClient) {
-    return (uri: string, documentVersion: number, edits: TextEdit[]) => {
-        applyTextEdits(client, uri, documentVersion, edits);
+    return async (uri: string, documentVersion: number, edits: TextEdit[]) => {
+        await applyTextEdits(client, uri, documentVersion, edits);
     };
 }
 
-function applyTextEdits(client: LanguageClient, uri: string, documentVersion: number, edits: TextEdit[]) {
+const allfixesCompletes = [];
+function onAllFixesComplete(fn: (te: TextEditor, edits: TextEdit[], ok: boolean) => void) {
+    allfixesCompletes.push(fn);
+}
+
+async function applyTextEdits(client: LanguageClient, uri: string, documentVersion: number, edits: TextEdit[]): Promise<boolean> {
     let textEditor = window.activeTextEditor;
     if (textEditor && textEditor.document.uri.toString() === uri) {
         if (textEditor.document.version === documentVersion) {
-            textEditor.edit(mutator => {
+            return textEditor.edit(mutator => {
                 edits.forEach(ed => mutator.replace(client.protocol2CodeConverter.asRange(ed.range), ed.newText));
             }).then(ok => {
-                // do nothing
+                client.info("AllFixesComplete");
+                allfixesCompletes.forEach(fn => fn(textEditor, edits, ok))
+                return true;
             }, errors => {
                 client.error(errors.message, errors.stack);
             });
         } else {
             window.showInformationMessage(`textlint fixes are outdated and can't be applied to ${uri}`);
+            return true;
         }
     }
 }
