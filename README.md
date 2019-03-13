@@ -11,6 +11,6 @@ Extension to integrate [textlint](https://textlint.github.io/) into VSCode.
 * hit F5 to build and debug the extension
 
 ## How to release
-
-1. run `npm run publish` inside the **textlint-server** folder
-2. run `vsce publish` inside the **textlint** folder
+1. run 'ncu -u' inside the **textlint-server** and **textlint** folder
+2. run `npm run publish` inside the **textlint-server** folder
+3. run `vsce publish` inside the **textlint** folder

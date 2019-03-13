@@ -2,32 +2,37 @@
   "name": "@taichi/vscode-textlint-server",
   "version": "0.6.7",
   "description": "Textlint Linter Server",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taichi/vscode-textlint"
+  },
+  "license": "MIT",
+  "files": [
+    "lib"
+  ],
+  "main": "lib/server.js",
+  "scripts": {
+    "clean": "rimraf lib",
+    "compile": "tsc -p .",
+    "lint": "tslint src/**.ts",
+    "prepublishOnly": "npm run clean && npm run compile",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {
+    "glob": "^7.1.1",
+    "vscode-languageserver": "^5.3.0-next.1"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.1.1",
+    "@types/node": "^11.11.3",
+    "rimraf": "^2.6.1",
+    "tslint": "^5.12.1",
+    "typescript": "^3.3.1"
+  },
   "engines": {
     "node": "*"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "main": "lib/server.js",
-  "files": [
-    "lib"
-  ],
-  "dependencies": {
-    "glob": "^7.1.1",
-    "vscode-languageserver": "^5.2.1"
-  },
-  "devDependencies": {
-    "@types/glob": "^7.1.1",
-    "@types/node": "^10.12.21",
-    "rimraf": "^2.6.1",
-    "tslint": "^5.12.1",
-    "typescript": "^3.3.1"
-  },
-  "scripts": {
-    "prepublishOnly": "npm run clean && npm run compile",
-    "clean": "rimraf lib",
-    "compile": "tsc -p .",
-    "watch": "tsc -watch -p ./",
-    "lint": "tslint src/**.ts"
   }
 }
