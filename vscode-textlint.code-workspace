@@ -1,10 +1,16 @@
 {
 	"folders": [
 		{
+			"path": "."
+		},
+		{
 			"path": "textlint"
 		},
 		{
 			"path": "textlint-server"
+		},
+		{
+			"path": "test"
 		}
 	],
 	"settings": {}
