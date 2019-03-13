@@ -9,15 +9,16 @@ jobs:
       - run: cd textlint && rm package-lock.json
       - run: cd textlint && npm install
       - run: cd textlint-server && npm install
+      - run: cd test && npm install
       - run: cd textlint && npm run prepare:dev
       - run: cd textlint && npm run lint
       - run: cd textlint && npm run compile 
-      # - run:
-      #     name: run tests
-      #     command: |
-      #       cd textlint
-      #       set -e
-      #       Xvfb :10 -ac >> /tmp/Xvfb.out 2>&1 &
-      #       disown -ar
-      #       export DISPLAY=:10
-      #       npm test
+      - run:
+          name: run tests
+          command: |
+            cd textlint
+            set -e
+            Xvfb :10 -ac >> /tmp/Xvfb.out 2>&1 &
+            disown -ar
+            export DISPLAY=:10
+            npm test
