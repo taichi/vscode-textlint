@@ -1,31 +1,49 @@
-strategy:
-  matrix:
-    linux:
-      imageName: 'ubuntu-16.04'
-    mac:
-      imageName: 'macos-10.13'
-    windows2016:
-      imageName: 'vs2017-win2016'
-pool:
-  vmImage: $(imageName)
-  demands: npm
-steps:
-  - script: 'git config --global core.autocrlf input'
-    displayName: 'config CRLF'
-  - checkout: self
-  - task: NodeTool@0
-    displayName: 'Use Node 8.x'
-    inputs:
-      versionSpec: 8.x
-  - script: 'cd textlint && rm package-lock.json'
-    displayName: 'Remove package-lock.json for error'
-  - script: 'cd textlint && npm install'
-    displayName: 'Install client dependencies'
-  - script: 'cd textlint-server && npm install'
-    displayName: 'Install server dependencies'
-  - script: 'cd test && npm install'
-    displayName: 'Install test dependencies'
-  - script: 'cd textlint && npm run compile'
-    displayName: 'Compile'
-  - script: 'cd textlint && npm test'
-    displayName: 'run tests'
+jobs:
+  - job: Windows
+    pool:
+      vmImage: 'vs2017-win2016'
+      demands: npm
+    steps:
+      - script: 'git config --global core.autocrlf input'
+        displayName: 'config CRLF'
+      - checkout: self
+      - template: azure-pipelines/common.yml
+      - task: Npm@1
+        inputs:
+          command: 'custom'
+          verbose: true
+          customCommand: 'test'
+          workingDir: textlint
+  - job: Linux
+    pool:
+      vmImage: 'Ubuntu-16.04'
+      demands: npm
+    steps:
+      - checkout: self
+      - script: |
+          set -e
+          sudo apt-get update
+          sudo apt-get install -y libxkbfile-dev pkg-config libsecret-1-dev libxss1 dbus xvfb libgtk-3-0
+          sudo cp azure-pipelines/xvfb.init /etc/init.d/xvfb
+          sudo chmod +x /etc/init.d/xvfb
+          sudo update-rc.d xvfb defaults
+          sudo service xvfb start
+      - template: azure-pipelines/common.yml
+      - script: |
+          cd textlint
+          export DISPLAY=:10
+          npm test
+        displayName: Run tests
+  - job: Mac
+    pool:
+      vmImage: 'macos-10.13'
+      demands: npm
+    steps:
+      - checkout: self
+      - template: azure-pipelines/common.yml
+      - task: Npm@1
+        inputs:
+          command: 'custom'
+          verbose: true
+          customCommand: 'test'
+          workingDir: textlint
