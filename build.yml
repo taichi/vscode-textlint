@@ -1,0 +1,25 @@
+jobs:
+- job: Windows
+  pool:
+    name: Hosted VS2017
+    demands: npm
+  steps:
+  - script: 'git config --global core.autocrlf input'
+    displayName: 'config CRLF'
+  - checkout: self
+  - task: NodeTool@0
+    displayName: 'Use Node 8.x'
+    inputs:
+      versionSpec: 8.x
+  - script: 'cd textlint && rm package-lock.json'
+    displayName: 'Remove package-lock.json for error'
+  - script: 'cd textlint && npm install'
+    displayName: 'Install client dependencies'
+  - script: 'cd textlint-server && npm install'
+    displayName: 'Install server dependencies'
+  - script: 'cd test && npm install'
+    displayName: 'Install test dependencies'
+  - script: 'cd textlint && npm run compile'
+    displayName: 'Compile'
+  - script: 'cd textlint && npm test'
+    displayName: 'run tests'

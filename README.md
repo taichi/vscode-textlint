@@ -1,20 +1,16 @@
-# vscode-textlint [![CircleCI](https://circleci.com/gh/taichi/vscode-textlint.svg?style=svg)](https://circleci.com/gh/taichi/vscode-textlint) [![AppVeyor](https://ci.appveyor.com/api/projects/status/hj02ysfokl3jewa6/branch/master?svg=true)](https://ci.appveyor.com/project/taichi/vscode-textlint/branch/master)
+# vscode-textlint [![CircleCI](https://circleci.com/gh/taichi/vscode-textlint.svg?style=svg)](https://circleci.com/gh/taichi/vscode-textlint) [![Build Status](https://dev.azure.com/ryushi/vscode-textlint/_apis/build/status/vscode-textlint-CI?branchName=master)](https://dev.azure.com/ryushi/vscode-textlint/_build/latest?definitionId=2&branchName=master)
 
 Extension to integrate [textlint](https://textlint.github.io/) into VSCode.
 
 ## Development setup
 
-* run `npm run install:all` inside the **textlint** folder
+* open `vscode-textlint.code-workspace` by VS Code
+* run `npm run prepare:dev` inside the **textlint** folder
+* run `npm install` inside the **textlint** folder
 * run `npm run watch` inside the **textlint** folder
-* open VS Code on **textlint** and **textlint-server**
+* hit F5 to build and debug the extension
 
-## Developing the server
+## How to release
 
-* open VS Code on **textlint-server**
-* run `npm run compile` or `npm run watch` to build the server and copy it into the **textlint** folder
-* to debug press F5 which attaches a debugger to the server
-
-## Developing the extension/client
-
-* open VS Code on **textlint**
-* run F5 to build and debug the extension
+1. run `npm run publish` inside the **textlint-server** folder
+2. run `vsce publish` inside the **textlint** folder
