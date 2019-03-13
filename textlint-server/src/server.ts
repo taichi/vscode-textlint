@@ -111,6 +111,7 @@ documents.onDidOpen(event => {
 });
 
 function clearDiagnostics(uri) {
+    TRACE(`clearDiagnostics ${uri}`);
     if (uri.startsWith("file:")) {
         fixrepos.delete(uri);
         connection.sendDiagnostics({ uri, diagnostics: [] });
