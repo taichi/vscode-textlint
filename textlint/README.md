@@ -39,6 +39,10 @@ This extension contributes the following commands to the Command palette.
 
 ## Release Notes
 
+### 0.6.8
+* change default value of `textlint.run` to `onSave`
+* run tests on Azure Pipelines.
+
 ### 0.6.5
 * add tex file support including `.tex`, `.latex`, `.doctex`.
 * this feature works with [LaTeX Workshop](https://marketplace.visualstudio.com/items?itemName=James-Yu.latex-workshop) and [textlint-plugin-latex2e](https://github.com/ta2gch/textlint-plugin-latex2e).
