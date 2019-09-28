@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
+import * as minimatch from "minimatch";
 
 import {
     workspace, window, commands, ExtensionContext, Disposable, TextDocumentSaveReason, TextEditor
@@ -162,7 +163,14 @@ function configureAutoFixOnSave(client: LanguageClient) {
         let languages = new Set(SUPPORT_LANGUAGES);
         autoFixOnSave = workspace.onWillSaveTextDocument(event => {
             let doc = event.document;
-            if (languages.has(doc.languageId) && event.reason !== TextDocumentSaveReason.AfterDelay) {
+            let target = getConfig("targetPath", null);
+            if (
+                languages.has(doc.languageId) &&
+                event.reason !== TextDocumentSaveReason.AfterDelay &&
+                (target === "" || minimatch(doc.fileName.replace(workspace.rootPath + "/", ""), target, {
+                    matchBase: true
+                }))
+            ) {
                 let version = doc.version;
                 let uri: string = doc.uri.toString();
                 event.waitUntil(
