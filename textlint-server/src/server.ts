@@ -1,5 +1,5 @@
 import {
-    createConnection, IConnection, FileChangeType,
+    createConnection, IConnection,
     CodeAction, CodeActionKind, Command, Diagnostic, DiagnosticSeverity, Position, Range, Files,
     TextDocuments, TextDocument, TextEdit,
     ErrorMessageTracker, IPCMessageReader, IPCMessageWriter
@@ -15,7 +15,7 @@ import * as glob from "glob";
 import * as minimatch from "minimatch";
 
 import {
-    NoConfigNotification, NoLibraryNotification, ExitNotification,
+    NoConfigNotification, NoLibraryNotification,
     AllFixesRequest, StatusNotification,
     StartProgressNotification, StopProgressNotification
 } from "./types";
