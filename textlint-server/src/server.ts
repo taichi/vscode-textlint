@@ -12,6 +12,7 @@ import * as os from "os";
 import * as fs from "fs";
 import * as path from "path";
 import * as glob from "glob";
+import * as minimatch from "minimatch";
 
 import {
     NoConfigNotification, NoLibraryNotification, ExitNotification,
@@ -169,7 +170,11 @@ function findConfig(): string {
 function validate(doc: TextDocument): Thenable<void> {
     let uri = doc.uri;
     TRACE(`validate ${uri}`);
-    if (!textlintModule || uri.startsWith("file:") === false) {
+    let currentFile = doc.uri.replace("file://" + workspaceRoot + "/", "");
+    let isTarget = (settings.targetPath === "" || minimatch(currentFile, settings.targetPath, {
+        matchBase: true
+    }));
+    if (!textlintModule || uri.startsWith("file:") === false || !isTarget) {
         TRACE("validation skiped...");
         return Promise.resolve();
     }

@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@taichi/vscode-textlint-server": "file:../textlint-server",
+    "minimatch": "^3.0.4",
     "vscode-languageclient": "^5.2.1",
     "vscode-uri": "^1.0.1"
   },
@@ -109,6 +110,11 @@
           ],
           "default": "off",
           "description": "Traces the communication between VSCode and the textlint linter service."
+        },
+        "textlint.targetPath": {
+          "type": "string",
+          "default": "",
+          "description": "Target files path that runs lint."
         }
       }
     },
