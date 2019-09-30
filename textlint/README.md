@@ -27,6 +27,8 @@ command `Create '.textlintrc' file`.
 * `textlint.configPath`
   * absolute path to textlint config file.
   * workspace settings are prioritize.
+* `textlint.targetPath`
+  * set a glob pattern.
 
 ## Commands
 
@@ -38,6 +40,10 @@ This extension contributes the following commands to the Command palette.
   * applies textlint auto-fix resolutions to all fixable problems.
 
 ## Release Notes
+
+### 0.7.0
+* add sets a target path support.
+  * thanks for @bells17 !!
 
 ### 0.6.8
 * change default value of `textlint.run` to `onSave`
