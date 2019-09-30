@@ -88,6 +88,10 @@ documents.onDidSave(event => {
 
 function resolveTextlint(): Thenable<any> {
     return Files.resolveModulePath(workspaceRoot, "textlint", settings.nodePath, TRACE)
+        .then((path: string) => {
+            TRACE(`Module textlint got resolved to ${path}`)
+            return require(path);
+        })
         .then(value => value, error => {
             connection.sendNotification(NoLibraryNotification.type);
             return Promise.reject(error);
