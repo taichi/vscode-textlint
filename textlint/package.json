@@ -1,6 +1,6 @@
 {
   "name": "vscode-textlint",
-  "version": "0.6.8",
+  "version": "0.7.0",
   "description": "Integrates Textlint into VS Code.",
   "homepage": "https://github.com/taichi/vscode-textlint",
   "bugs": {
