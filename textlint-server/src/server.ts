@@ -224,12 +224,20 @@ function toDiagnosticSeverity(severity?: number): DiagnosticSeverity {
 
 function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
     let txt = message.ruleId ? `${message.message} (${message.ruleId})` : message.message;
-    let pos = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1));
+    let pos_start = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1));
+    var offset = 0;
+    if (message.message.indexOf('->') >= 0) {
+        offset = message.message.indexOf(' ->');
+    }
+    if (message.message.indexOf('"') >= 0) {
+        offset = message.message.indexOf('"', message.message.indexOf('"') + 1) - 1;
+    }
+    let pos_end = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1) + offset);;
     let diag: Diagnostic = {
         message: txt,
         severity: toDiagnosticSeverity(message.severity),
         source: "textlint",
-        range: Range.create(pos, pos),
+        range: Range.create(pos_start, pos_end),
         code: message.ruleId
     };
     return [message, diag];
