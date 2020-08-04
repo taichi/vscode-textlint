@@ -82,10 +82,12 @@
       "properties": {
         "textlint.languages": {
           "default": [
-            [
-              "markdown",
-              "plaintext"
-            ]
+            "markdown",
+            "plaintext",
+            "html",
+            "tex",
+            "latex",
+            "doctex"
           ],
           "type": [
             "array"
