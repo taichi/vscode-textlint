@@ -89,7 +89,7 @@ function newClient(context: ExtensionContext): LanguageClient {
     };
 
     let defaultErrorHandler: ErrorHandler;
-    let languages = getConfig("languages").map(id => {
+    let languages = getConfig<string[]>("languages").map(id => {
         return { language: id, scheme: 'file' };
     });
     let serverCalledProcessExit = false;
