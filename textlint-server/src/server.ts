@@ -1,12 +1,13 @@
 import {
     createConnection, IConnection,
     CodeAction, CodeActionKind, Command, Diagnostic, DiagnosticSeverity, Position, Range, Files,
-    TextDocuments, TextDocument, TextEdit,
-    ErrorMessageTracker, IPCMessageReader, IPCMessageWriter
+    TextDocuments, TextEdit, TextDocumentSyncKind,
+    ErrorMessageTracker, ProposedFeatures
 } from "vscode-languageserver";
+import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import { Trace, LogTraceNotification } from "vscode-jsonrpc";
-import Uri from "vscode-uri";
+import { URI } from "vscode-uri";
 
 import * as os from "os";
 import * as fs from "fs";
@@ -22,8 +23,8 @@ import {
 
 import { TextlintFixRepository, AutoFix } from "./autofix";
 
-let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
-let documents: TextDocuments = new TextDocuments();
+let connection: IConnection = createConnection(ProposedFeatures.all);
+let documents = new TextDocuments(TextDocument);
 let workspaceRoot: string;
 let trace: number;
 let textlintModule;
@@ -38,7 +39,7 @@ connection.onInitialize(params => {
     return resolveTextlint().then(() => {
         return {
             capabilities: {
-                textDocumentSync: documents.syncKind,
+                textDocumentSync: TextDocumentSyncKind.Full,
                 codeActionProvider: true
             }
         };
@@ -188,7 +189,7 @@ function validate(doc: TextDocument): Thenable<void> {
         try {
             TRACE(`configuration file is ${conf}`);
             return repo.newEngine(conf).then(engine => {
-                let ext = path.extname(Uri.parse(uri).fsPath);
+                let ext = path.extname(URI.parse(uri).fsPath);
                 TRACE(`engine startd... ${ext}`);
                 if (-1 < engine.availableExtensions.findIndex(s => s === ext)) {
                     repo.clear();
