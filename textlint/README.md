@@ -41,6 +41,10 @@ This extension contributes the following commands to the Command palette.
 
 ## Release Notes
 
+### 0.8.0
+* add sets a target path support.
+  * thanks for @bells17 !!
+
 ### 0.7.0
 * add sets a target path support.
   * thanks for @bells17 !!
