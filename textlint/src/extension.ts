@@ -16,7 +16,6 @@ import {
 import { LogTraceNotification } from "vscode-jsonrpc";
 
 import {
-    SUPPORT_LANGUAGES,
     StatusNotification, NoConfigNotification, NoLibraryNotification, ExitNotification, AllFixesRequest,
     StartProgressNotification, StopProgressNotification
 } from "./types";
@@ -31,7 +30,7 @@ export interface ExtensionInternal {
 
 export function activate(context: ExtensionContext): ExtensionInternal {
     let client = newClient(context);
-    let statusBar = new StatusBar(SUPPORT_LANGUAGES);
+    let statusBar = new StatusBar(getConfig("languages"));
     client.onReady().then(() => {
         client.onDidChangeState(event => {
             statusBar.serverRunning = event.newState === ServerState.Running;
@@ -90,7 +89,7 @@ function newClient(context: ExtensionContext): LanguageClient {
     };
 
     let defaultErrorHandler: ErrorHandler;
-    let languages = SUPPORT_LANGUAGES.map(id => {
+    let languages = getConfig("languages").map(id => {
         return { language: id, scheme: 'file' };
     });
     let serverCalledProcessExit = false;
@@ -160,7 +159,7 @@ let autoFixOnSave: Disposable;
 function configureAutoFixOnSave(client: LanguageClient) {
     let auto = getConfig("autoFixOnSave", false);
     if (auto && !autoFixOnSave) {
-        let languages = new Set(SUPPORT_LANGUAGES);
+        let languages = new Set(getConfig("languages"));
         autoFixOnSave = workspace.onWillSaveTextDocument(event => {
             let doc = event.document;
             let target = getConfig("targetPath", null);
