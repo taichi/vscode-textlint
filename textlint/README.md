@@ -35,7 +35,7 @@ command `Create '.textlintrc' file`.
 This extension contributes the following commands to the Command palette.
 
 * Create '.textlintrc' File
-  * creates a new .eslintrc.json file.
+  * creates a new .textlintrc file.
 * Fix all auto-fixable Problems
   * applies textlint auto-fix resolutions to all fixable problems.
 
