@@ -102,12 +102,14 @@ function newClient(context: ExtensionContext): LanguageClient {
             fileEvents: [
                 workspace.createFileSystemWatcher("**/package.json"),
                 workspace.createFileSystemWatcher('**/.textlintrc'),
-                workspace.createFileSystemWatcher('**/.textlintrc.{js,json,yml,yaml}')
+                workspace.createFileSystemWatcher('**/.textlintrc.{js,json,yml,yaml}'),
+                workspace.createFileSystemWatcher('**/.textlintignore')
             ]
         },
         initializationOptions: () => {
             return {
                 configPath: getConfig("configPath"),
+                ignorePath: getConfig("ignorePath"),
                 nodePath: getConfig("nodePath"),
                 run: getConfig("run"),
                 trace: getConfig("trace", "off")

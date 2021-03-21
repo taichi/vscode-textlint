@@ -23,12 +23,15 @@ import {
 
 import { TextlintFixRepository, AutoFix } from "./autofix";
 
+const DEFAULT_IGNORE_PATTERNS = Object.freeze(["**/.git/**", "**/node_modules/**"]);
+
 let connection: IConnection = createConnection(ProposedFeatures.all);
 let documents = new TextDocuments(TextDocument);
 let workspaceRoot: string;
 let trace: number;
 let textlintModule;
 let settings;
+let ignorePatterns: string[];
 documents.listen(connection);
 let fixrepos: Map<string/* uri */, TextlintFixRepository> = new Map();
 
@@ -45,6 +48,27 @@ connection.onInitialize(params => {
         };
     });
 });
+
+function loadIgnoreFile() {
+    ignorePatterns = [];
+    ignorePatterns.push(...DEFAULT_IGNORE_PATTERNS);
+    const ignorePath = settings.ignorePath ?
+        settings.ignorePath :
+        path.resolve(workspaceRoot, ".textlintignore");
+    const baseDir = path.dirname(ignorePath);
+    if (fs.existsSync(ignorePath)) {
+        const patterns = fs.readFileSync(ignorePath, "utf-8")
+            .split(/\r?\n/)
+            .filter((line: string) => !/^\s*$/.test(line) && !/^\s*#/.test(line))
+            .map((pattern) => {
+                if (pattern.startsWith("!")) {
+                    return "!" + path.posix.join(baseDir, pattern.slice(1));
+                }
+                return path.posix.join(baseDir, pattern)
+            });
+        ignorePatterns.push(...patterns);
+    }
+}
 
 function rewind() {
     return resolveTextlint().then(() => {
@@ -65,10 +89,12 @@ connection.onDidChangeConfiguration(change => {
     TRACE(`onDidChangeConfiguration ${JSON.stringify(newone)}`);
     settings = newone;
     trace = Trace.fromString(newone.trace);
+    loadIgnoreFile();
     return rewind();
 });
 connection.onDidChangeWatchedFiles(params => {
     TRACE("onDidChangeWatchedFiles");
+    loadIgnoreFile();
     return rewind();
 });
 
@@ -172,14 +198,26 @@ function findConfig(): string {
     return "";
 }
 
+function isTarget(file: string): boolean {
+    if (!ignorePatterns) {
+        loadIgnoreFile();
+    }
+    for (const pattern of ignorePatterns) {
+        if (minimatch(file, pattern)) {
+            return false
+        }
+    }
+    const relativePath = path.relative(workspaceRoot, file);
+    return settings.targetPath === "" || minimatch(relativePath, settings.targetPath, {
+        matchBase: true
+    });
+}
+
 function validate(doc: TextDocument): Thenable<void> {
     let uri = doc.uri;
     TRACE(`validate ${uri}`);
-    let currentFile = doc.uri.replace("file://" + workspaceRoot + "/", "");
-    let isTarget = (settings.targetPath === "" || minimatch(currentFile, settings.targetPath, {
-        matchBase: true
-    }));
-    if (!textlintModule || uri.startsWith("file:") === false || !isTarget) {
+    let currentFile = URI.parse(doc.uri).fsPath;
+    if (!textlintModule || uri.startsWith("file:") === false || !isTarget(currentFile)) {
         TRACE("validation skiped...");
         return Promise.resolve();
     }
