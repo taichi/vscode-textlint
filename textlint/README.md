@@ -44,6 +44,11 @@ This extension contributes the following commands to the Command palette.
 
 ## Release Notes
 
+### 0.9.0
+
+- add .textlintignore support
+  - thanks for @frozenbonito
+
 ### 0.8.0
 
 - add option to choose languages and improve positioning of highlighted
