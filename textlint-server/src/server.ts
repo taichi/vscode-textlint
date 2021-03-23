@@ -1,9 +1,9 @@
 import {
-    createConnection, IConnection,
+    createConnection,
     CodeAction, CodeActionKind, Command, Diagnostic, DiagnosticSeverity, Position, Range, Files,
     TextDocuments, TextEdit, TextDocumentSyncKind,
     ErrorMessageTracker, ProposedFeatures
-} from "vscode-languageserver";
+} from "vscode-languageserver/node";
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import { Trace, LogTraceNotification } from "vscode-jsonrpc";
@@ -25,7 +25,7 @@ import { TextlintFixRepository, AutoFix } from "./autofix";
 
 const DEFAULT_IGNORE_PATTERNS = Object.freeze(["**/.git/**", "**/node_modules/**"]);
 
-let connection: IConnection = createConnection(ProposedFeatures.all);
+let connection = createConnection(ProposedFeatures.all);
 let documents = new TextDocuments(TextDocument);
 let workspaceRoot: string;
 let trace: number;

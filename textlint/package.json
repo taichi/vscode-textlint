@@ -21,7 +21,6 @@
     "compile:server": "cd ../textlint-server && npm run compile",
     "dispose-link": "run-p dispose-link:*",
     "dispose-link:client": "npm uninstall @taichi/vscode-textlint-server",
-    "postinstall": "npm run vscode:link",
     "install:all": "run-p install:client",
     "install:client": "npm install @taichi/vscode-textlint-server",
     "lint": "run-p lint:*",
@@ -30,7 +29,7 @@
     "prepare:client": "npm install @taichi/vscode-textlint-server@file:../textlint-server",
     "prepare:dev": "run-s dispose-link prepare:client",
     "test": "cross-env CODE_TESTS_WORKSPACE=../test node ./node_modules/vscode/bin/test --disable-extensions",
-    "vscode:link": "node ./node_modules/vscode/bin/install",
+    "upgrade": "ncu -u && cd ../textlint-server && ncu -u",
     "vscode:prepublish": "run-s clean:all install:all compile:client",
     "watch": "npm-run-all prepare:dev --parallel watch:*",
     "watch:client": "tsc -watch -p ./",
@@ -39,23 +38,24 @@
   "dependencies": {
     "@taichi/vscode-textlint-server": "file:../textlint-server",
     "minimatch": "^3.0.4",
-    "vscode-languageclient": "^6.1.3"
+    "vscode-languageclient": "^7.0.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "9.0.1",
-    "@types/mocha": "^8.0.1",
-    "@types/node": "^14.0.27",
-    "cross-env": "^7.0.2",
-    "fs-extra": "^9.0.1",
-    "mocha": "^8.1.0",
+    "@types/fs-extra": "9.0.8",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "^14.14.35",
+    "@types/vscode": "^1.52.0",
+    "cross-env": "^7.0.3",
+    "fs-extra": "^9.1.0",
+    "mocha": "^8.3.2",
+    "npm-check-updates": "^11.3.0",
     "npm-run-all": "^4.1.5",
     "rimraf": "^3.0.2",
     "tslint": "^6.1.3",
-    "typescript": "^3.9.7",
-    "vscode": "^1.1.37"
+    "typescript": "^4.2.3"
   },
   "engines": {
-    "vscode": "^1.47.0"
+    "vscode": "^1.52.0"
   },
   "activationEvents": [
     "onLanguage:html",

@@ -46,7 +46,7 @@ suite("Extension Tests", () => {
         teardown(async () => {
             let p = new Promise(resolve => {
                 fs.unlink(newfile, err => {
-                    resolve();
+                    resolve(0);
                 });
             });
             await commands.executeCommand("workbench.action.closeAllEditors");
@@ -61,7 +61,7 @@ suite("Extension Tests", () => {
                         return; // skip empty diagnostics
                     }
                     if (d.length === 3) {
-                        resolve();
+                        resolve(0);
                     } else {
                         reject(`assertion failed length:${d.length} ${d}`);
                     }

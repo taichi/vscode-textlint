@@ -7,11 +7,12 @@ import {
 } from "vscode";
 
 import {
-    LanguageClient, LanguageClientOptions, ServerOptions, TextEdit,
-    State as ServerState,
-    ErrorHandler, ErrorAction, CloseAction,
-    TransportKind, RevealOutputChannelOn
+    TextEdit, State as ServerState, ErrorHandler, ErrorAction, CloseAction, RevealOutputChannelOn
 } from "vscode-languageclient";
+
+import {
+    LanguageClient, LanguageClientOptions, ServerOptions, TransportKind
+} from 'vscode-languageclient/node';
 
 import { LogTraceNotification } from "vscode-jsonrpc";
 
