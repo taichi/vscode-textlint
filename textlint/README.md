@@ -16,71 +16,83 @@ command `Create '.textlintrc' file`.
 
 ## Settings Options
 
-* `textlint.autoFixOnSave`
-  * by default is `false`. if you set `true`, Automatically fix auto-fixable errors on save.
-* `textlint.run`
-  * run the linter `onSave` or `onType`, default is `onType`.
-* `textlint.nodePath`
-  * use this setting if an installed textlint package can't be detected, for example `/myGlobalNodePackages/node_modules`.
-* `textlint.trace`
-  * Traces the communication between VSCode and the textlint linter service.
-* `textlint.configPath`
-  * absolute path to textlint config file.
-  * workspace settings are prioritize.
-* `textlint.ignorePath`
-  * absolute path to textlint ignore file.
-  * see [here](https://textlint.github.io/docs/ignore.html#ignoring-files-textlintignore) for ignore file.
-* `textlint.targetPath`
-  * set a glob pattern.
+- `textlint.autoFixOnSave`
+  - by default is `false`. if you set `true`, Automatically fix auto-fixable errors on save.
+- `textlint.run`
+  - run the linter `onSave` or `onType`, default is `onType`.
+- `textlint.nodePath`
+  - use this setting if an installed textlint package can't be detected, for example `/myGlobalNodePackages/node_modules`.
+- `textlint.trace`
+  - Traces the communication between VSCode and the textlint linter service.
+- `textlint.configPath`
+  - absolute path to textlint config file.
+  - workspace settings are prioritize.
+- `textlint.ignorePath`
+  - absolute path to textlint ignore file.
+  - see [here](https://textlint.github.io/docs/ignore.html#ignoring-files-textlintignore) for ignore file.
+- `textlint.targetPath`
+  - set a glob pattern.
 
 ## Commands
 
 This extension contributes the following commands to the Command palette.
 
-* Create '.textlintrc' File
-  * creates a new .textlintrc file.
-* Fix all auto-fixable Problems
-  * applies textlint auto-fix resolutions to all fixable problems.
+- Create '.textlintrc' File
+  - creates a new .textlintrc file.
+- Fix all auto-fixable Problems
+  - applies textlint auto-fix resolutions to all fixable problems.
 
 ## Release Notes
 
 ### 0.8.0
-* add sets a target path support.
-  * thanks for @bells17 !!
+
+- add sets a target path support.
+  - thanks for @bells17 !!
 
 ### 0.7.0
-* add sets a target path support.
-  * thanks for @bells17 !!
+
+- add sets a target path support.
+  - thanks for @bells17 !!
 
 ### 0.6.8
-* change default value of `textlint.run` to `onSave`
-* run tests on Azure Pipelines.
+
+- change default value of `textlint.run` to `onSave`
+- run tests on Azure Pipelines.
 
 ### 0.6.5
-* add tex file support including `.tex`, `.latex`, `.doctex`.
-* this feature works with [LaTeX Workshop](https://marketplace.visualstudio.com/items?itemName=James-Yu.latex-workshop) and [textlint-plugin-latex2e](https://github.com/ta2gch/textlint-plugin-latex2e).
+
+- add tex file support including `.tex`, `.latex`, `.doctex`.
+- this feature works with [LaTeX Workshop](https://marketplace.visualstudio.com/items?itemName=James-Yu.latex-workshop) and [textlint-plugin-latex2e](https://github.com/ta2gch/textlint-plugin-latex2e).
 
 ### 0.5.0
-* add `configPath` to configuration. recommend to use your user settings.
+
+- add `configPath` to configuration. recommend to use your user settings.
 
 ### 0.4.0
-* read configuration file from `HOME` dir
-  * if you want to use global configuration, you should install textlint and plugins globally.
+
+- read configuration file from `HOME` dir
+  - if you want to use global configuration, you should install textlint and plugins globally.
 
 ### 0.3.0
-* update runtime dependencies
+
+- update runtime dependencies
 
 ### 0.2.3
-* add tracing option.
+
+- add tracing option.
 
 ### 0.2.2
-* fix some bug.
+
+- fix some bug.
 
 ### 0.2.1
-* add progress notification to StatusBar
+
+- add progress notification to StatusBar
 
 ### 0.2.0
-* Supports fixing errors.
+
+- Supports fixing errors.
 
 ### 0.1.0
-* Initial Release
+
+- Initial Release
