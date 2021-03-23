@@ -12,7 +12,7 @@ import {
 
 import {
     LanguageClient, LanguageClientOptions, ServerOptions, TransportKind
-} from 'vscode-languageclient/node';
+} from "vscode-languageclient/node";
 
 import { LogTraceNotification } from "vscode-jsonrpc";
 
@@ -91,7 +91,7 @@ function newClient(context: ExtensionContext): LanguageClient {
 
     let defaultErrorHandler: ErrorHandler;
     let languages = getConfig<string[]>("languages").map(id => {
-        return { language: id, scheme: 'file' };
+        return { language: id, scheme: "file" };
     });
     let serverCalledProcessExit = false;
     let clientOptions: LanguageClientOptions = {
@@ -102,9 +102,9 @@ function newClient(context: ExtensionContext): LanguageClient {
             configurationSection: "textlint",
             fileEvents: [
                 workspace.createFileSystemWatcher("**/package.json"),
-                workspace.createFileSystemWatcher('**/.textlintrc'),
-                workspace.createFileSystemWatcher('**/.textlintrc.{js,json,yml,yaml}'),
-                workspace.createFileSystemWatcher('**/.textlintignore')
+                workspace.createFileSystemWatcher("**/.textlintrc"),
+                workspace.createFileSystemWatcher("**/.textlintrc.{js,json,yml,yaml}"),
+                workspace.createFileSystemWatcher("**/.textlintignore")
             ]
         },
         initializationOptions: () => {
@@ -150,7 +150,7 @@ function createConfig() {
             fs.writeFileSync(rc, `{
   "filters": {},
   "rules": {}
-}`, { encoding: 'utf8' });
+}`, { encoding: "utf8" });
         }
     } else {
         window.showErrorMessage("An textlint configuration can only be generated if VS Code is opened on a workspace folder.");
@@ -233,7 +233,7 @@ async function applyTextEdits(client: LanguageClient, uri: string, documentVersi
                 edits.forEach(ed => mutator.replace(client.protocol2CodeConverter.asRange(ed.range), ed.newText));
             }).then(ok => {
                 client.info("AllFixesComplete");
-                allfixesCompletes.forEach(fn => fn(textEditor, edits, ok))
+                allfixesCompletes.forEach(fn => fn(textEditor, edits, ok));
                 return true;
             }, errors => {
                 client.error(errors.message, errors.stack);

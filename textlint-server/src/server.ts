@@ -4,7 +4,7 @@ import {
     TextDocuments, TextEdit, TextDocumentSyncKind,
     ErrorMessageTracker, ProposedFeatures
 } from "vscode-languageserver/node";
-import { TextDocument } from 'vscode-languageserver-textdocument';
+import { TextDocument } from "vscode-languageserver-textdocument";
 
 import { Trace, LogTraceNotification } from "vscode-jsonrpc";
 import { URI } from "vscode-uri";
@@ -64,7 +64,7 @@ function loadIgnoreFile() {
                 if (pattern.startsWith("!")) {
                     return "!" + path.posix.join(baseDir, pattern.slice(1));
                 }
-                return path.posix.join(baseDir, pattern)
+                return path.posix.join(baseDir, pattern);
             });
         ignorePatterns.push(...patterns);
     }
@@ -81,7 +81,7 @@ function rewind() {
             }
         }).filter(d => d);
         return docs ? validateMany(docs) : null;
-    })
+    });
 }
 
 connection.onDidChangeConfiguration(change => {
@@ -116,7 +116,7 @@ documents.onDidSave(event => {
 function resolveTextlint(): Thenable<any> {
     return Files.resolveModulePath(workspaceRoot, "textlint", settings.nodePath, TRACE)
         .then((path: string) => {
-            TRACE(`Module textlint got resolved to ${path}`)
+            TRACE(`Module textlint got resolved to ${path}`);
             return require(path);
         })
         .then(value => value, error => {
@@ -204,7 +204,7 @@ function isTarget(file: string): boolean {
     }
     for (const pattern of ignorePatterns) {
         if (minimatch(file, pattern)) {
-            return false
+            return false;
         }
     }
     const relativePath = path.relative(workspaceRoot, file);
@@ -265,13 +265,13 @@ function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
     let txt = message.ruleId ? `${message.message} (${message.ruleId})` : message.message;
     let pos_start = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1));
     var offset = 0;
-    if (message.message.indexOf('->') >= 0) {
-        offset = message.message.indexOf(' ->');
+    if (message.message.indexOf("->") >= 0) {
+        offset = message.message.indexOf(" ->");
     }
-    if (message.message.indexOf('"') >= 0) {
-        offset = message.message.indexOf('"', message.message.indexOf('"') + 1) - 1;
+    if (message.message.indexOf("\"") >= 0) {
+        offset = message.message.indexOf("\"", message.message.indexOf("\"") + 1) - 1;
     }
-    let pos_end = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1) + offset);;
+    let pos_end = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1) + offset);
     let diag: Diagnostic = {
         message: txt,
         severity: toDiagnosticSeverity(message.severity),
