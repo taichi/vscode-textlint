@@ -46,13 +46,13 @@ This extension contributes the following commands to the Command palette.
 
 ### 0.8.0
 
-- add sets a target path support.
-  - thanks for @bells17 !!
+- add option to choose languages and improve positioning of highlighted
+  - thanks for @linhtto
 
 ### 0.7.0
 
 - add sets a target path support.
-  - thanks for @bells17 !!
+  - thanks for @bells17
 
 ### 0.6.8
 
