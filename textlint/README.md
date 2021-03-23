@@ -27,6 +27,9 @@ command `Create '.textlintrc' file`.
 * `textlint.configPath`
   * absolute path to textlint config file.
   * workspace settings are prioritize.
+* `textlint.ignorePath`
+  * absolute path to textlint ignore file.
+  * see [here](https://textlint.github.io/docs/ignore.html#ignoring-files-textlintignore) for ignore file.
 * `textlint.targetPath`
   * set a glob pattern.
 
