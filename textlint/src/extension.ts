@@ -32,6 +32,11 @@ export interface ExtensionInternal {
 export function activate(context: ExtensionContext): ExtensionInternal {
     let client = newClient(context);
     let statusBar = new StatusBar(getConfig("languages"));
+    let enabled = getConfig("enable");
+    if (!enabled) {
+        statusBar.show(false)
+        return;
+    }
     client.onReady().then(() => {
         client.onDidChangeState(event => {
             statusBar.serverRunning = event.newState === ServerState.Running;
