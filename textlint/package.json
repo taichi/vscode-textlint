@@ -1,6 +1,6 @@
 {
   "name": "vscode-textlint",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Integrates Textlint into VS Code.",
   "homepage": "https://github.com/taichi/vscode-textlint",
   "bugs": {
@@ -37,7 +37,7 @@
     "watch:server": "cd ../textlint-server && npm run watch"
   },
   "dependencies": {
-    "@taichi/vscode-textlint-server": "^0.9.0",
+    "@taichi/vscode-textlint-server": "^0.10.0",
     "minimatch": "^3.0.4",
     "vscode-languageclient": "^7.0.0"
   },
