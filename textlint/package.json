@@ -84,12 +84,6 @@
       "type": "object",
       "title": "textlint",
       "properties": {
-        "textlint.enable": {
-          "type": "boolean",
-          "default": false,
-          "description": "Control whether textlint is enabled for current workspace.",
-          "scope": "resource"
-        },
         "textlint.languages": {
           "default": [
             "markdown",
