@@ -34,7 +34,7 @@ export function activate(context: ExtensionContext): ExtensionInternal {
     let statusBar = new StatusBar(getConfig("languages"));
     let enabled = getConfig("enable");
     if (!enabled) {
-        statusBar.show(false)
+        statusBar.show(false);
         return;
     }
     client.onReady().then(() => {
