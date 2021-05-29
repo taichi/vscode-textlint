@@ -32,6 +32,8 @@ command `Create '.textlintrc' file`.
   - see [here](https://textlint.github.io/docs/ignore.html#ignoring-files-textlintignore) for ignore file.
 - `textlint.targetPath`
   - set a glob pattern.
+- `textlint.languages`
+  - Languages to lint with textlint.
 
 ## Commands
 
