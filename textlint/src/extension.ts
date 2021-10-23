@@ -109,7 +109,7 @@ You need to reopen the workspace after installing textlint.`
     client.start(),
     statusBar
   );
-  // for testing purpse
+  // for testing purpose
   return {
     client,
     statusBar,
@@ -279,11 +279,11 @@ function makeApplyFixFn(client: LanguageClient) {
   };
 }
 
-const allfixesCompletes = [];
+const allFixesCompletes = [];
 function onAllFixesComplete(
   fn: (te: TextEditor, edits: TextEdit[], ok: boolean) => void
 ) {
-  allfixesCompletes.push(fn);
+  allFixesCompletes.push(fn);
 }
 
 async function applyTextEdits(
@@ -307,7 +307,7 @@ async function applyTextEdits(
         .then(
           (ok) => {
             client.info("AllFixesComplete");
-            allfixesCompletes.forEach((fn) => fn(textEditor, edits, ok));
+            allFixesCompletes.forEach((fn) => fn(textEditor, edits, ok));
             return true;
           },
           (errors) => {
