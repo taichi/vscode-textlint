@@ -1,12 +1,12 @@
 {
-    "files.exclude": {
-        "out": false
-    },
-    "search.exclude": {
-        "out": true
-    },
-    "typescript.tsdk": "./node_modules/typescript/lib",
-    "editor.formatOnSave": true,
-    "tslint.enable": true,
-    "tslint.autoFixOnSave": true
+  "files.exclude": {
+    "out": false
+  },
+  "search.exclude": {
+    "out": true
+  },
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "editor.formatOnSave": true,
+  "tslint.enable": true,
+  "tslint.autoFixOnSave": true
 }

@@ -1,6 +1,6 @@
 {
   "parser": "@typescript-eslint/parser",
-	"root": true,
+  "root": true,
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "module"
@@ -16,6 +16,6 @@
     "curly": "warn",
     "quotes": ["error", "double", { "allowTemplateLiterals": true }],
     "eqeqeq": "error",
-		"no-console": "error"
+    "no-console": "error"
   }
 }

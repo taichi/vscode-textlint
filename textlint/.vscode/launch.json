@@ -1,37 +1,33 @@
 // A launch configuration that compiles the extension and then opens it inside a new window
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Run Extension",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "${workspaceFolder}/../test",
-                "--extensionDevelopmentPath=${workspaceFolder}",
-                "--disable-extensions"
-            ],
-            "outFiles": [
-                "${workspaceFolder}/out/src/**/*.js"
-            ],
-            "preLaunchTask": "npm: compile"
-        },
-        {
-            "name": "Test Extension",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "${workspaceFolder}/../test",
-                "--extensionDevelopmentPath=${workspaceFolder}",
-                "--extensionTestsPath=${workspaceFolder}/out/test",
-                "--disable-extensions"
-            ],
-            "outFiles": [
-                "${workspaceFolder}/out/test/**/*.js"
-            ],
-            "preLaunchTask": "npm: compile"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/../test",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--disable-extensions"
+      ],
+      "outFiles": ["${workspaceFolder}/out/src/**/*.js"],
+      "preLaunchTask": "npm: compile"
+    },
+    {
+      "name": "Test Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/../test",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/out/test",
+        "--disable-extensions"
+      ],
+      "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
+      "preLaunchTask": "npm: compile"
+    }
+  ]
 }
