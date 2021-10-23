@@ -37,7 +37,7 @@
     "watch:server": "cd ../textlint-server && npm run watch"
   },
   "dependencies": {
-    "@taichi/vscode-textlint-server": "^0.10.0",
+    "@taichi/vscode-textlint-server": "file:../textlint-server",
     "minimatch": "^3.0.4",
     "vscode-languageclient": "^7.0.0"
   },
