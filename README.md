@@ -1,4 +1,4 @@
-# vscode-textlint [![CircleCI](https://circleci.com/gh/taichi/vscode-textlint.svg?style=svg)](https://circleci.com/gh/taichi/vscode-textlint) [![Build Status](https://dev.azure.com/ryushi/vscode-textlint/_apis/build/status/vscode-textlint-CI?branchName=master)](https://dev.azure.com/ryushi/vscode-textlint/_build/latest?definitionId=2&branchName=master)
+# vscode-textlint [![CircleCI](https://circleci.com/gh/taichi/vscode-textlint.svg?style=svg)](https://circleci.com/gh/taichi/vscode-textlint)
 
 Extension to integrate [textlint](https://textlint.github.io/) into VSCode.
 

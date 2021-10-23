@@ -1,0 +1,107 @@
+name: push
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Get npm cache directory
+        id: npm-cache
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v2
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - run: cd textlint && rm package-lock.json
+      - run: cd textlint && npm install
+      - run: cd textlint-server && npm install
+      - run: cd test && npm install
+      - run: cd textlint && npm run prepare:dev
+      - run: cd textlint && npm run lint
+      - run: cd textlint && npm run compile
+      - run: cd textlint && npm test
+
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DISPLAY: ":10"
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Build Environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxkbfile-dev pkg-config libsecret-1-dev libxss1 dbus xvfb libgtk-3-0 libgbm1
+          sudo cp .github/xvfb.init /etc/init.d/xvfb
+          sudo chmod +x /etc/init.d/xvfb
+          sudo update-rc.d xvfb defaults
+          sudo service xvfb start
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - run: cd textlint && rm package-lock.json
+      - run: cd textlint && npm install
+      - run: cd textlint-server && npm install
+      - run: cd test && npm install
+      - run: cd textlint && npm run prepare:dev
+      - run: cd textlint && npm run lint
+      - run: cd textlint && npm run compile
+      - run: cd textlint && npm test
+
+  darwin:
+    name: macOS
+    runs-on: macos-latest
+    timeout-minutes: 30
+    env:
+      DISPLAY: ":10"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - run: cd textlint && rm package-lock.json
+      - run: cd textlint && npm install
+      - run: cd textlint-server && npm install
+      - run: cd test && npm install
+      - run: cd textlint && npm run prepare:dev
+      - run: cd textlint && npm run lint
+      - run: cd textlint && npm run compile
+      - run: cd textlint && npm test
