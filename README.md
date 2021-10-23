@@ -1,4 +1,4 @@
-# vscode-textlint [![CircleCI](https://circleci.com/gh/taichi/vscode-textlint.svg?style=svg)](https://circleci.com/gh/taichi/vscode-textlint)
+# vscode-textlint ![push](https://github.com/taichi/vscode-textlint/actions/workflows/push.yml/badge.svg)
 
 Extension to integrate [textlint](https://textlint.github.io/) into VSCode.
 
