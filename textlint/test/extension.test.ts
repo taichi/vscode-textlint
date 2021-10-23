@@ -1,5 +1,6 @@
 import * as assert from "assert";
 import * as fs from "fs-extra";
+import * as path from "path";
 
 
 import { workspace, window, commands, Extension, extensions, Disposable } from "vscode";
@@ -35,8 +36,9 @@ suite("Extension Tests", () => {
     });
 
     suite("with server", function () {
-        let original = `${workspace.rootPath}/testtest.txt`;
-        let newfile = `${workspace.rootPath}/testtest2.txt`;
+        const rootPath = workspace.workspaceFolders[0].uri.fsPath;
+        let original = path.join(rootPath, "testtest.txt");
+        let newfile =path.join(rootPath, "testtest2.txt");
         let timelag = (ms = 100) => new Promise(resolve => setTimeout(resolve, ms));
         const disposables: Disposable[] = [];
         setup(async () => {
