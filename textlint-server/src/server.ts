@@ -59,32 +59,15 @@ connection.onInitialize((params) => {
   });
 });
 
-function rewind() {
-  return resolveTextlint().then(() => {
-    let docs = [...fixrepos.keys()]
-      .map((uri) => {
-        clearDiagnostics(uri);
-        let d = documents.get(uri);
-        if (d) {
-          configureLint(uri);
-          return d;
-        }
-      })
-      .filter((d) => d);
-    return docs ? validateMany(docs) : null;
-  });
-}
-
 connection.onDidChangeConfiguration((change) => {
   let newone = change.settings.textlint;
   TRACE(`onDidChangeConfiguration ${JSON.stringify(newone)}`);
   settings = newone;
   trace = Trace.fromString(newone.trace);
-  return rewind();
 });
+
 connection.onDidChangeWatchedFiles((params) => {
   TRACE("onDidChangeWatchedFiles");
-  return rewind();
 });
 
 documents.onDidChangeContent((event) => {
@@ -162,29 +145,6 @@ function validateSingle(textDocument: TextDocument) {
     .then(sendOK, (error) => {
       sendError(error);
     })
-    .then(sendStopProgress);
-}
-
-function validateMany(textDocuments: TextDocument[]) {
-  let tracker = new ErrorMessageTracker();
-  sendStartProgress();
-  let promises = textDocuments.map((doc) => {
-    return validate(doc).then(undefined, (error) => {
-      tracker.add(error.message);
-      return Promise.reject(error);
-    });
-  });
-  return Promise.all(promises)
-    .then(
-      () => {
-        tracker.sendErrors(connection);
-        sendOK();
-      },
-      (errors) => {
-        tracker.sendErrors(connection);
-        sendError(errors);
-      }
-    )
     .then(sendStopProgress);
 }
 
