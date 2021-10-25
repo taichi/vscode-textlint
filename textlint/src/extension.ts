@@ -260,7 +260,9 @@ let autoFixOnSave: Disposable;
 
 function configureAutoFixOnSave(client: LanguageClient) {
   let auto = getConfig("autoFixOnSave", false);
-  if (auto && !autoFixOnSave) {
+  disposeAutoFixOnSave();
+
+  if (auto) {
     let languages = new Set(getConfig("languages"));
     autoFixOnSave = workspace.onWillSaveTextDocument((event) => {
       let doc = event.document;
@@ -287,10 +289,8 @@ function configureAutoFixOnSave(client: LanguageClient) {
       }
     });
   }
-  if (auto === false) {
-    disposeAutoFixOnSave();
-  }
 }
+
 function disposeAutoFixOnSave() {
   if (autoFixOnSave) {
     autoFixOnSave.dispose();
