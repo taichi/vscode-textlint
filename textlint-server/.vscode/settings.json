@@ -5,6 +5,4 @@
   "search.exclude": {
     "lib": true
   },
-  "typescript.tsdk": "./node_modules/typescript/lib",
-  "tslint.enable": true,
 }
