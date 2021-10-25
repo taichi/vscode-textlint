@@ -1,4 +1,5 @@
-import { Diagnostic, TextDocument } from "vscode-languageserver";
+import { Diagnostic } from "vscode-languageserver";
+import { TextDocument } from "vscode-languageserver-textdocument";
 
 export interface AutoFix {
   version: number;
