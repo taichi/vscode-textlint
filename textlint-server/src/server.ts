@@ -13,11 +13,12 @@ import {
   TextDocumentSyncKind,
   ErrorMessageTracker,
   ProposedFeatures,
+  WorkspaceFolder,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 
 import { Trace, LogTraceNotification } from "vscode-jsonrpc";
-import { URI } from "vscode-uri";
+import { URI, Utils as URIUtils } from "vscode-uri";
 
 import * as os from "os";
 import * as fs from "fs";
@@ -38,131 +39,62 @@ import { TextlintFixRepository, AutoFix } from "./autofix";
 
 let connection = createConnection(ProposedFeatures.all);
 let documents = new TextDocuments(TextDocument);
-let workspaceRoot: string;
 let trace: number;
-let textlintModule;
 let settings;
 documents.listen(connection);
-let fixrepos: Map<string /* uri */, TextlintFixRepository> = new Map();
 
-connection.onInitialize((params) => {
-  workspaceRoot = params.rootPath;
+const engineRepo: Map<string /* workspaceFolder uri */, TextLintEngine> =
+  new Map();
+let fixRepo: Map<string /* uri */, TextlintFixRepository> = new Map();
+
+connection.onInitialize(async (params) => {
   settings = params.initializationOptions;
   trace = Trace.fromString(settings.trace);
-  return resolveTextlint().then(() => {
-    return {
-      capabilities: {
-        textDocumentSync: TextDocumentSyncKind.Full,
-        codeActionProvider: true,
+  return {
+    capabilities: {
+      textDocumentSync: TextDocumentSyncKind.Full,
+      codeActionProvider: true,
+      workspace: {
+        workspaceFolders: {
+          supported: true,
+          changeNotifications: true,
+        },
       },
-    };
+    },
+  };
+});
+
+connection.onInitialized(async () => {
+  const folders = await connection.workspace.getWorkspaceFolders();
+  await configureEngine(folders);
+  connection.workspace.onDidChangeWorkspaceFolders(async (event) => {
+    for (const folder of event.removed) {
+      engineRepo.delete(folder.uri);
+    }
+    await reConfigure();
   });
 });
 
-connection.onDidChangeConfiguration((change) => {
-  let newone = change.settings.textlint;
-  TRACE(`onDidChangeConfiguration ${JSON.stringify(newone)}`);
-  settings = newone;
-  trace = Trace.fromString(newone.trace);
-});
-
-connection.onDidChangeWatchedFiles((params) => {
-  TRACE("onDidChangeWatchedFiles");
-});
-
-documents.onDidChangeContent((event) => {
-  let uri = event.document.uri;
-  TRACE(`onDidChangeContent ${uri}`);
-  if (settings.run === "onType") {
-    return validateSingle(event.document);
-  }
-});
-documents.onDidSave((event) => {
-  let uri = event.document.uri;
-  TRACE(`onDidSave ${uri}`);
-  if (settings.run === "onSave") {
-    return validateSingle(event.document);
-  }
-});
-
-function resolveTextlint(): Thenable<any> {
-  return Files.resolveModulePath(
-    workspaceRoot,
-    "textlint",
-    settings.nodePath,
-    TRACE
-  )
-    .then((path: string) => {
-      TRACE(`Module textlint got resolved to ${path}`);
-      return require(path);
-    })
-    .then(
-      (value) => value,
-      (error) => {
-        connection.sendNotification(NoLibraryNotification.type);
-        return Promise.reject(error);
-      }
-    )
-    .then((mod) => (textlintModule = mod));
-}
-
-function configureLint(uri) {
-  if (uri.startsWith("file:") && fixrepos.has(uri) === false) {
-    fixrepos.set(
-      uri,
-      new TextlintFixRepository(() => {
-        if (textlintModule) {
-          return Promise.resolve(textlintModule);
-        }
-        return resolveTextlint();
-      })
-    );
+async function configureEngine(folders: WorkspaceFolder[]) {
+  for (const folder of folders) {
+    TRACE(`configureEngine ${folder.uri}`);
+    const root = URI.parse(folder.uri).fsPath;
+    const configFile = lookupConfig(root);
+    const ignoreFile = lookupIgnore(root);
+    try {
+      const mod = await resolveModule(root);
+      const engine = new mod.TextLintEngine({
+        configFile,
+        ignoreFile,
+      });
+      engineRepo.set(folder.uri, engine);
+    } catch (e) {}
   }
 }
 
-documents.onDidOpen((event) => {
-  let uri = event.document.uri;
-  TRACE(`onDidOpen ${uri}`);
-  configureLint(uri);
-});
-
-function clearDiagnostics(uri) {
-  TRACE(`clearDiagnostics ${uri}`);
-  if (uri.startsWith("file:")) {
-    fixrepos.delete(uri);
-    connection.sendDiagnostics({ uri, diagnostics: [] });
-  }
-}
-documents.onDidClose((event) => {
-  let uri = event.document.uri;
-  TRACE(`onDidOpen ${uri}`);
-  clearDiagnostics(uri);
-});
-
-function validateSingle(textDocument: TextDocument) {
-  sendStartProgress();
-  return validate(textDocument)
-    .then(sendOK, (error) => {
-      sendError(error);
-    })
-    .then(sendStopProgress);
-}
-
-function candidates(root: string) {
-  return () => glob.sync(`${root}/.textlintr{c.js,c.yaml,c.yml,c,c.json}`);
-}
-
-function findIgnore() {
-  const ignorePath =
-    settings.ignorePath || path.resolve(workspaceRoot, ".textlintignore");
-  if (fs.existsSync(ignorePath)) {
-    return ignorePath;
-  }
-}
-
-function findConfig(): string {
+function lookupConfig(root: string): string | undefined {
   let roots = [
-    candidates(workspaceRoot),
+    candidates(root),
     () => {
       return fs.existsSync(settings.configPath) ? [settings.configPath] : [];
     },
@@ -175,11 +107,123 @@ function findConfig(): string {
     }
   }
   connection.sendNotification(NoConfigNotification.type);
-  return "";
 }
 
-function isTarget(file: string): boolean {
-  const relativePath = path.relative(workspaceRoot, file);
+function lookupIgnore(root: string): string | undefined {
+  const ignorePath =
+    settings.ignorePath || path.resolve(root, ".textlintignore");
+  if (fs.existsSync(ignorePath)) {
+    return ignorePath;
+  }
+}
+
+async function resolveModule(root: string) {
+  try {
+    TRACE(`Module textlint resolve from ${root}`);
+    const path = await Files.resolveModulePath(
+      root,
+      "textlint",
+      settings.nodePath,
+      TRACE
+    );
+    TRACE(`Module textlint got resolved to ${path}`);
+    return require(path);
+  } catch (e) {
+    connection.sendNotification(NoLibraryNotification.type);
+    throw e;
+  }
+}
+
+async function reConfigure() {
+  TRACE(`reConfigure`);
+  await configureEngine(await connection.workspace.getWorkspaceFolders());
+  const docs = [];
+  for (const uri of fixRepo.keys()) {
+    TRACE(`reConfigure:push ${uri}`);
+    connection.sendDiagnostics({ uri, diagnostics: [] });
+    docs.push(documents.get(uri));
+  }
+  return validateMany(docs);
+}
+
+connection.onDidChangeConfiguration(async (change) => {
+  let newone = change.settings.textlint;
+  TRACE(`onDidChangeConfiguration ${JSON.stringify(newone)}`);
+  settings = newone;
+  trace = Trace.fromString(newone.trace);
+  await reConfigure();
+});
+
+connection.onDidChangeWatchedFiles(async (params) => {
+  TRACE("onDidChangeWatchedFiles");
+  await reConfigure();
+});
+
+documents.onDidChangeContent(async (event) => {
+  let uri = event.document.uri;
+  TRACE(`onDidChangeContent ${uri}`);
+  if (settings.run === "onType") {
+    return validateSingle(event.document);
+  }
+});
+documents.onDidSave(async (event) => {
+  let uri = event.document.uri;
+  TRACE(`onDidSave ${uri}`);
+  if (settings.run === "onSave") {
+    return validateSingle(event.document);
+  }
+});
+
+documents.onDidOpen((event) => {
+  let uri = event.document.uri;
+  TRACE(`onDidOpen ${uri}`);
+  if (uri.startsWith("file:") && fixRepo.has(uri) === false) {
+    fixRepo.set(uri, new TextlintFixRepository());
+  }
+});
+
+function clearDiagnostics(uri) {
+  TRACE(`clearDiagnostics ${uri}`);
+  if (uri.startsWith("file:")) {
+    fixRepo.delete(uri);
+    connection.sendDiagnostics({ uri, diagnostics: [] });
+  }
+}
+documents.onDidClose((event) => {
+  let uri = event.document.uri;
+  TRACE(`onDidClose ${uri}`);
+  clearDiagnostics(uri);
+});
+
+async function validateSingle(textDocument: TextDocument) {
+  sendStartProgress();
+  return validate(textDocument)
+    .then(sendOK, (error) => {
+      sendError(error);
+    })
+    .then(sendStopProgress);
+}
+
+async function validateMany(textDocuments: TextDocument[]) {
+  let tracker = new ErrorMessageTracker();
+  sendStartProgress();
+  for (const doc of textDocuments) {
+    try {
+      await validate(doc);
+    } catch (err) {
+      tracker.add(err.message);
+    }
+  }
+  tracker.sendErrors(connection);
+  sendStopProgress();
+}
+
+function candidates(root: string) {
+  return () => glob.sync(`${root}/.textlintr{c.js,c.yaml,c.yml,c,c.json}`);
+}
+
+function isTarget(root: string, file: string): boolean {
+  const relativePath = file.substring(root.length);
   return (
     settings.targetPath === "" ||
     minimatch(relativePath, settings.targetPath, {
@@ -188,50 +232,53 @@ function isTarget(file: string): boolean {
   );
 }
 
-function validate(doc: TextDocument): Thenable<void> {
-  let uri = doc.uri;
-  TRACE(`validate ${uri}`);
-  let currentFile = URI.parse(doc.uri).fsPath;
-  if (
-    !textlintModule ||
-    uri.startsWith("file:") === false ||
-    !isTarget(currentFile)
-  ) {
-    TRACE("validation skipped...");
-    return Promise.resolve();
-  }
-  let conf = findConfig();
-  let repo = fixrepos.get(uri);
-  if (conf && repo) {
-    try {
-      TRACE(`configuration file is ${conf}`);
-      return repo.newEngine(conf, findIgnore()).then((engine) => {
-        let ext = path.extname(URI.parse(uri).fsPath);
-        TRACE(`engine started... ${ext}`);
-        if (-1 < engine.availableExtensions.findIndex((s) => s === ext)) {
-          repo.clear();
-          return engine
-            .executeOnText(doc.getText(), ext)
-            .then(([results]) => {
-              return results.messages.map(toDiagnostic).map(([msg, diag]) => {
-                repo.register(doc, diag, msg);
-                return diag;
-              });
-            })
-            .then(
-              (diagnostics) => {
-                TRACE(`sendDiagnostics ${uri}`);
-                connection.sendDiagnostics({ uri, diagnostics });
-              },
-              (errors) => sendError(errors)
-            );
-        }
-      });
-    } catch (error) {
-      return Promise.reject(error);
+function lookupEngine(doc: TextDocument): [string, TextLintEngine] {
+  TRACE(`lookupEngine ${doc.uri}`);
+  for (const ent of engineRepo.entries()) {
+    if (doc.uri.startsWith(ent[0])) {
+      return ent;
     }
   }
-  return Promise.resolve();
+  TRACE(`lookupEngine ${doc.uri} not found`);
+  return ["", undefined];
+}
+
+async function validate(doc: TextDocument) {
+  TRACE(`validate ${doc.uri}`);
+  const uri = URI.parse(doc.uri);
+  if (doc.uri.startsWith("file:") === false) {
+    TRACE("validation skipped...");
+    return;
+  }
+
+  const repo = fixRepo.get(doc.uri);
+  if (repo) {
+    const [folder, engine] = lookupEngine(doc);
+    const ext = URIUtils.extname(uri);
+    if (
+      engine &&
+      -1 < engine.availableExtensions.findIndex((s) => s === ext) &&
+      isTarget(folder, uri.fsPath)
+    ) {
+      repo.clear();
+      try {
+        const results = await engine.executeOnText(doc.getText(), ext);
+        TRACE(`results ${JSON.stringify(results)}`);
+        for (const result of results) {
+          const diagnostics = result.messages
+            .map(toDiagnostic)
+            .map(([msg, diag]) => {
+              repo.register(doc, diag, msg);
+              return diag;
+            });
+          TRACE(`sendDiagnostics ${doc.uri}`);
+          connection.sendDiagnostics({ uri: doc.uri, diagnostics });
+        }
+      } catch (e) {
+        sendError(e);
+      }
+    }
+  }
 }
 
 function toDiagnosticSeverity(severity?: number): DiagnosticSeverity {
@@ -281,7 +328,7 @@ connection.onCodeAction((params) => {
   TRACE("onCodeAction", params);
   let result: CodeAction[] = [];
   let uri = params.textDocument.uri;
-  let repo = fixrepos.get(uri);
+  let repo = fixRepo.get(uri);
   if (repo && repo.isEmpty() === false) {
     let doc = documents.get(uri);
     let toAction = (title, edits) => {
@@ -325,7 +372,7 @@ connection.onRequest(AllFixesRequest.type, (params: AllFixesRequest.Params) => {
   let uri = params.textDocument.uri;
   TRACE(`AllFixesRequest ${uri}`);
   let textDocument = documents.get(uri);
-  let repo = fixrepos.get(uri);
+  let repo = fixRepo.get(uri);
   if (repo && repo.isEmpty() === false) {
     return {
       documentVersion: repo.version,
