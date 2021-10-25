@@ -269,13 +269,9 @@ function configureAutoFixOnSave(client: LanguageClient) {
         languages.has(doc.languageId) &&
         event.reason !== TextDocumentSaveReason.AfterDelay &&
         (target === "" ||
-          minimatch(
-            doc.fileName.replace(workspace.rootPath + "/", ""),
-            target,
-            {
-              matchBase: true,
-            }
-          ))
+          minimatch(workspace.asRelativePath(doc.uri), target, {
+            matchBase: true,
+          }))
       ) {
         let version = doc.version;
         let uri: string = doc.uri.toString();
