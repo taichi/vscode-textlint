@@ -36,18 +36,12 @@ import {
 
 import { TextlintFixRepository, AutoFix } from "./autofix";
 
-const DEFAULT_IGNORE_PATTERNS = Object.freeze([
-  "**/.git/**",
-  "**/node_modules/**",
-]);
-
 let connection = createConnection(ProposedFeatures.all);
 let documents = new TextDocuments(TextDocument);
 let workspaceRoot: string;
 let trace: number;
 let textlintModule;
 let settings;
-let ignorePatterns: string[];
 documents.listen(connection);
 let fixrepos: Map<string /* uri */, TextlintFixRepository> = new Map();
 
@@ -64,28 +58,6 @@ connection.onInitialize((params) => {
     };
   });
 });
-
-function loadIgnoreFile() {
-  ignorePatterns = [];
-  ignorePatterns.push(...DEFAULT_IGNORE_PATTERNS);
-  const ignorePath = settings.ignorePath
-    ? settings.ignorePath
-    : path.resolve(workspaceRoot, ".textlintignore");
-  const baseDir = path.dirname(ignorePath);
-  if (fs.existsSync(ignorePath)) {
-    const patterns = fs
-      .readFileSync(ignorePath, "utf-8")
-      .split(/\r?\n/)
-      .filter((line: string) => !/^\s*$/.test(line) && !/^\s*#/.test(line))
-      .map((pattern) => {
-        if (pattern.startsWith("!")) {
-          return "!" + path.posix.join(baseDir, pattern.slice(1));
-        }
-        return path.posix.join(baseDir, pattern);
-      });
-    ignorePatterns.push(...patterns);
-  }
-}
 
 function rewind() {
   return resolveTextlint().then(() => {
@@ -108,12 +80,10 @@ connection.onDidChangeConfiguration((change) => {
   TRACE(`onDidChangeConfiguration ${JSON.stringify(newone)}`);
   settings = newone;
   trace = Trace.fromString(newone.trace);
-  loadIgnoreFile();
   return rewind();
 });
 connection.onDidChangeWatchedFiles((params) => {
   TRACE("onDidChangeWatchedFiles");
-  loadIgnoreFile();
   return rewind();
 });
 
@@ -222,6 +192,14 @@ function candidates(root: string) {
   return () => glob.sync(`${root}/.textlintr{c.js,c.yaml,c.yml,c,c.json}`);
 }
 
+function findIgnore() {
+  const ignorePath =
+    settings.ignorePath || path.resolve(workspaceRoot, ".textlintignore");
+  if (fs.existsSync(ignorePath)) {
+    return ignorePath;
+  }
+}
+
 function findConfig(): string {
   let roots = [
     candidates(workspaceRoot),
@@ -241,14 +219,6 @@ function findConfig(): string {
 }
 
 function isTarget(file: string): boolean {
-  if (!ignorePatterns) {
-    loadIgnoreFile();
-  }
-  for (const pattern of ignorePatterns) {
-    if (minimatch(file, pattern)) {
-      return false;
-    }
-  }
   const relativePath = path.relative(workspaceRoot, file);
   return (
     settings.targetPath === "" ||
@@ -275,7 +245,7 @@ function validate(doc: TextDocument): Thenable<void> {
   if (conf && repo) {
     try {
       TRACE(`configuration file is ${conf}`);
-      return repo.newEngine(conf).then((engine) => {
+      return repo.newEngine(conf, findIgnore()).then((engine) => {
         let ext = path.extname(URI.parse(uri).fsPath);
         TRACE(`engine started... ${ext}`);
         if (-1 < engine.availableExtensions.findIndex((s) => s === ext)) {
