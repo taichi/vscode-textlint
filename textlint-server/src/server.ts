@@ -267,7 +267,7 @@ function validate(doc: TextDocument): Thenable<void> {
     uri.startsWith("file:") === false ||
     !isTarget(currentFile)
   ) {
-    TRACE("validation skiped...");
+    TRACE("validation skipped...");
     return Promise.resolve();
   }
   let conf = findConfig();
@@ -277,7 +277,7 @@ function validate(doc: TextDocument): Thenable<void> {
       TRACE(`configuration file is ${conf}`);
       return repo.newEngine(conf).then((engine) => {
         let ext = path.extname(URI.parse(uri).fsPath);
-        TRACE(`engine startd... ${ext}`);
+        TRACE(`engine started... ${ext}`);
         if (-1 < engine.availableExtensions.findIndex((s) => s === ext)) {
           repo.clear();
           return engine
