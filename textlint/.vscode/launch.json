@@ -16,6 +16,19 @@
       "preLaunchTask": "npm: compile"
     },
     {
+      "name": "Run Extension with workspace",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/../test-workspace/test.code-workspace",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--disable-extensions"
+      ],
+      "outFiles": ["${workspaceFolder}/out/src/**/*.js"],
+      "preLaunchTask": "npm: compile"
+    },
+    {
       "name": "Test Extension",
       "type": "extensionHost",
       "request": "launch",
