@@ -68,21 +68,19 @@ export function activate(context: ExtensionContext): ExtensionInternal {
         }
       }
     );
-    client.onNotification(NoConfigNotification.type, () => {
+    client.onNotification(NoConfigNotification.type, (p) => {
       statusBar.status = Status.WARN;
       statusBar.status.log(
         client,
-        `
-No textlint configuration (e.g .textlintrc) found.
+        `No textlint configuration (e.g .textlintrc) found in ${p.workspaceFolder} .
 File will not be validated. Consider running the 'Create .textlintrc file' command.`
       );
     });
-    client.onNotification(NoLibraryNotification.type, () => {
+    client.onNotification(NoLibraryNotification.type, (p) => {
       statusBar.status = Status.ERROR;
       statusBar.status.log(
         client,
-        `
-Failed to load the textlint library.
+        `Failed to load the textlint library in ${p.workspaceFolder} .
 To use textlint in this workspace please install textlint using \'npm install textlint\' or globally using \'npm install -g textlint\'.
 You need to reopen the workspace after installing textlint.`
       );

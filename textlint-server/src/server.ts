@@ -106,7 +106,9 @@ function lookupConfig(root: string): string | undefined {
       return files[0];
     }
   }
-  connection.sendNotification(NoConfigNotification.type);
+  connection.sendNotification(NoConfigNotification.type, {
+    workspaceFolder: root,
+  });
 }
 
 function lookupIgnore(root: string): string | undefined {
@@ -129,7 +131,9 @@ async function resolveModule(root: string) {
     TRACE(`Module textlint got resolved to ${path}`);
     return require(path);
   } catch (e) {
-    connection.sendNotification(NoLibraryNotification.type);
+    connection.sendNotification(NoLibraryNotification.type, {
+      workspaceFolder: root,
+    });
     throw e;
   }
 }
