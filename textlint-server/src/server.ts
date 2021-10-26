@@ -165,14 +165,14 @@ connection.onDidChangeWatchedFiles(async (params) => {
 
 documents.onDidChangeContent(async (event) => {
   let uri = event.document.uri;
-  TRACE(`onDidChangeContent ${uri}`);
+  TRACE(`onDidChangeContent ${uri}`, settings.run);
   if (settings.run === "onType") {
     return validateSingle(event.document);
   }
 });
 documents.onDidSave(async (event) => {
   let uri = event.document.uri;
-  TRACE(`onDidSave ${uri}`);
+  TRACE(`onDidSave ${uri}`, settings.run);
   if (settings.run === "onSave") {
     return validateSingle(event.document);
   }
@@ -240,6 +240,7 @@ function lookupEngine(doc: TextDocument): [string, TextLintEngine] {
   TRACE(`lookupEngine ${doc.uri}`);
   for (const ent of engineRepo.entries()) {
     if (doc.uri.startsWith(ent[0])) {
+      TRACE(`lookupEngine ${doc.uri} => ${ent[0]}`);
       return ent;
     }
   }
@@ -267,7 +268,7 @@ async function validate(doc: TextDocument) {
       repo.clear();
       try {
         const results = await engine.executeOnText(doc.getText(), ext);
-        TRACE(`results ${JSON.stringify(results)}`);
+        TRACE("results", results);
         for (const result of results) {
           const diagnostics = result.messages
             .map(toDiagnostic)
