@@ -237,10 +237,25 @@ function isTarget(root: string, file: string): boolean {
   );
 }
 
+function startsWith(target, prefix: string): boolean {
+  if (target.length < prefix.length) {
+    return false;
+  }
+  const tElements = target.split("/");
+  const pElements = prefix.split("/");
+  for (let i = 0; i < pElements.length; i++) {
+    if (pElements[i] !== tElements[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function lookupEngine(doc: TextDocument): [string, TextLintEngine] {
   TRACE(`lookupEngine ${doc.uri}`);
   for (const ent of engineRepo.entries()) {
-    if (doc.uri.startsWith(ent[0])) {
+    if (startsWith(doc.uri, ent[0])) {
       TRACE(`lookupEngine ${doc.uri} => ${ent[0]}`);
       return ent;
     }
