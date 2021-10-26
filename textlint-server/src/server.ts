@@ -178,11 +178,12 @@ documents.onDidSave(async (event) => {
   }
 });
 
-documents.onDidOpen((event) => {
+documents.onDidOpen(async (event) => {
   let uri = event.document.uri;
   TRACE(`onDidOpen ${uri}`);
   if (uri.startsWith("file:") && fixRepo.has(uri) === false) {
     fixRepo.set(uri, new TextlintFixRepository());
+    return validateSingle(event.document);
   }
 });
 
