@@ -79,9 +79,9 @@ async function configureEngine(folders: WorkspaceFolder[]) {
   for (const folder of folders) {
     TRACE(`configureEngine ${folder.uri}`);
     const root = URI.parse(folder.uri).fsPath;
-    const configFile = lookupConfig(root);
-    const ignoreFile = lookupIgnore(root);
     try {
+      const configFile = lookupConfig(root);
+      const ignoreFile = lookupIgnore(root);
       const mod = await resolveModule(root);
       const engine = new mod.TextLintEngine({
         configFile,
