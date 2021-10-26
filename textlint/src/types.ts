@@ -28,11 +28,18 @@ export namespace StatusNotification {
 }
 
 export namespace NoConfigNotification {
-  export const type = new NotificationType0("textlint/noconfig");
+  export const type = new NotificationType<Params>("textlint/noconfig");
+
+  export interface Params {
+    workspaceFolder: string;
+  }
 }
 
 export namespace NoLibraryNotification {
-  export const type = new NotificationType0("textlint/nolibrary");
+  export const type = new NotificationType<Params>("textlint/nolibrary");
+  export interface Params {
+    workspaceFolder: string;
+  }
 }
 
 export namespace AllFixesRequest {

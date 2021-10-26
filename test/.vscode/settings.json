@@ -1,6 +1,4 @@
 {
     "textlint.run": "onType",
     "textlint.autoFixOnSave": false,
-    "telemetry.enableCrashReporter": false,
-    "telemetry.enableTelemetry": false
 }

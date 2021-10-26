@@ -1,5 +1,3 @@
-import * as path from "path";
-import * as fs from "fs";
 import * as minimatch from "minimatch";
 
 import {
@@ -8,6 +6,8 @@ import {
   commands,
   ExtensionContext,
   Disposable,
+  QuickPickItem,
+  WorkspaceFolder,
   TextDocumentSaveReason,
   TextEditor,
 } from "vscode";
@@ -29,6 +29,8 @@ import {
 } from "vscode-languageclient/node";
 
 import { LogTraceNotification } from "vscode-jsonrpc";
+
+import { Utils as URIUtils } from "vscode-uri";
 
 import {
   StatusNotification,
@@ -66,21 +68,19 @@ export function activate(context: ExtensionContext): ExtensionInternal {
         }
       }
     );
-    client.onNotification(NoConfigNotification.type, () => {
+    client.onNotification(NoConfigNotification.type, (p) => {
       statusBar.status = Status.WARN;
       statusBar.status.log(
         client,
-        `
-No textlint configuration (e.g .textlintrc) found.
+        `No textlint configuration (e.g .textlintrc) found in ${p.workspaceFolder} .
 File will not be validated. Consider running the 'Create .textlintrc file' command.`
       );
     });
-    client.onNotification(NoLibraryNotification.type, () => {
+    client.onNotification(NoLibraryNotification.type, (p) => {
       statusBar.status = Status.ERROR;
       statusBar.status.log(
         client,
-        `
-Failed to load the textlint library.
+        `Failed to load the textlint library in ${p.workspaceFolder} .
 To use textlint in this workspace please install textlint using \'npm install textlint\' or globally using \'npm install -g textlint\'.
 You need to reopen the workspace after installing textlint.`
       );
@@ -180,31 +180,87 @@ function newClient(context: ExtensionContext): LanguageClient {
   return client;
 }
 
-function createConfig() {
-  if (workspace.rootPath) {
-    let rc = path.join(workspace.rootPath, ".textlintrc");
-    if (fs.existsSync(rc) === false) {
-      fs.writeFileSync(
-        rc,
+async function createConfig() {
+  const folders = workspace.workspaceFolders;
+  if (!folders) {
+    await window.showErrorMessage(
+      "An textlint configuration can only be generated if VS Code is opened on a workspace folder."
+    );
+    return;
+  }
+
+  const noConfigs = await filterNoConfigFolders(folders);
+
+  if (noConfigs.length < 1 && 0 < folders.length) {
+    await window.showErrorMessage(
+      "textlint configuration file already exists in this workspace."
+    );
+    return;
+  }
+
+  if (noConfigs.length === 1) {
+    await emitConfig(noConfigs[0]);
+  } else {
+    const item = await window.showQuickPick(toQuickPickItems(noConfigs));
+    if (item) {
+      await emitConfig(item.folder);
+    }
+  }
+}
+
+async function filterNoConfigFolders(
+  folders: readonly WorkspaceFolder[]
+): Promise<WorkspaceFolder[]> {
+  const result = [];
+  outer: for (let folder of folders) {
+    const candidates = ["", ".js", ".yaml", ".yml", ".json"].map((ext) =>
+      URIUtils.joinPath(folder.uri, ".textlintrc" + ext)
+    );
+    for (let configPath of candidates) {
+      try {
+        await workspace.fs.stat(configPath);
+        continue outer;
+      } catch {}
+    }
+    result.push(folder);
+  }
+  return result;
+}
+
+async function emitConfig(folder: WorkspaceFolder) {
+  if (folder) {
+    await workspace.fs.writeFile(
+      URIUtils.joinPath(folder.uri, ".textlintrc"),
+      Buffer.from(
         `{
   "filters": {},
   "rules": {}
 }`,
-        { encoding: "utf8" }
-      );
-    }
-  } else {
-    window.showErrorMessage(
-      "An textlint configuration can only be generated if VS Code is opened on a workspace folder."
+        "utf8"
+      )
     );
   }
+}
+
+function toQuickPickItems(
+  folders: WorkspaceFolder[]
+): ({ folder: WorkspaceFolder } & QuickPickItem)[] {
+  return folders.map((folder) => {
+    return {
+      label: folder.name,
+      description: folder.uri.path,
+      folder,
+    };
+  });
 }
 
 let autoFixOnSave: Disposable;
 
 function configureAutoFixOnSave(client: LanguageClient) {
   let auto = getConfig("autoFixOnSave", false);
-  if (auto && !autoFixOnSave) {
+  disposeAutoFixOnSave();
+
+  if (auto) {
     let languages = new Set(getConfig("languages"));
     autoFixOnSave = workspace.onWillSaveTextDocument((event) => {
       let doc = event.document;
@@ -213,13 +269,9 @@ function configureAutoFixOnSave(client: LanguageClient) {
         languages.has(doc.languageId) &&
         event.reason !== TextDocumentSaveReason.AfterDelay &&
         (target === "" ||
-          minimatch(
-            doc.fileName.replace(workspace.rootPath + "/", ""),
-            target,
-            {
-              matchBase: true,
-            }
-          ))
+          minimatch(workspace.asRelativePath(doc.uri), target, {
+            matchBase: true,
+          }))
       ) {
         let version = doc.version;
         let uri: string = doc.uri.toString();
@@ -235,10 +287,8 @@ function configureAutoFixOnSave(client: LanguageClient) {
       }
     });
   }
-  if (auto === false) {
-    disposeAutoFixOnSave();
-  }
 }
+
 function disposeAutoFixOnSave() {
   if (autoFixOnSave) {
     autoFixOnSave.dispose();

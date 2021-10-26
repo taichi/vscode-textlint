@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "test"
+		},
+		{
+			"path": "test-workspace"
 		}
 	],
 	"settings": {

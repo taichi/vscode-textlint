@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "simple"
+		},
+		{
+			"path": "second"
+		},
+		{
+			"path": "../test"
+		}
+	],
+	"settings": {
+		"textlint.trace": "verbose"
+    
+	},
+}
