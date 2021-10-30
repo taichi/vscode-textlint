@@ -32,14 +32,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - run: cd packages/textlint && rm package-lock.json
-      - run: cd packages/textlint && npm install
-      - run: cd packages/textlint-server && npm install
+      - run: npm install
       - run: cd packages/test && npm install
-      - run: cd packages/textlint && npm run prepare:dev
-      - run: cd packages/textlint && npm run lint
-      - run: cd packages/textlint && npm run compile
-      - run: cd packages/textlint && npm test
+      - run: npm run lint
+      - run: npm run compile
+      - run: npm test
 
   linux:
     name: Linux
@@ -69,14 +66,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - run: cd packages/textlint && rm package-lock.json
-      - run: cd packages/textlint && npm install
-      - run: cd packages/textlint-server && npm install
+      - run: npm install
       - run: cd packages/test && npm install
-      - run: cd packages/textlint && npm run prepare:dev
-      - run: cd packages/textlint && npm run lint
-      - run: cd packages/textlint && npm run compile
-      - run: cd packages/textlint && npm test
+      - run: npm run lint
+      - run: npm run compile
+      - run: npm test
 
   darwin:
     name: macOS
@@ -97,11 +91,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - run: cd packages/textlint && rm package-lock.json
-      - run: cd packages/textlint && npm install
-      - run: cd packages/textlint-server && npm install
+      - run: npm install
       - run: cd packages/test && npm install
-      - run: cd packages/textlint && npm run prepare:dev
-      - run: cd packages/textlint && npm run lint
-      - run: cd packages/textlint && npm run compile
-      - run: cd packages/textlint && npm test
+      - run: npm run lint
+      - run: npm run compile
+      - run: npm test
