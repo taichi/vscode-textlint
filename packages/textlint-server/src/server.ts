@@ -88,7 +88,9 @@ async function configureEngine(folders: WorkspaceFolder[]) {
         ignoreFile,
       });
       engineRepo.set(folder.uri, engine);
-    } catch (e) {}
+    } catch (e) {
+      TRACE("failed to configureEngine", e);
+    }
   }
 }
 
@@ -148,9 +150,7 @@ function loadModule(moduleName: string) {
   try {
     return r(moduleName);
   } catch (err: any) {
-    if (err.stack) {
-      TRACE(err.stack.toString());
-    }
+    TRACE("load failed", err);
   }
   return undefined;
 }
@@ -463,7 +463,10 @@ export function TRACE(message: string, data?: any) {
     case Trace.Verbose:
       let verbose = "";
       if (data) {
-        verbose = typeof data === "string" ? data : JSON.stringify(data);
+        verbose =
+          typeof data === "string"
+            ? data
+            : JSON.stringify(data, Object.getOwnPropertyNames(data));
       }
       connection.sendNotification(LogTraceNotification.type, {
         message,
