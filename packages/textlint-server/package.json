@@ -1,5 +1,5 @@
 {
-  "name": "@taichi/vscode-textlint-server",
+  "name": "vscode-textlint-server",
   "version": "0.10.0",
   "description": "Textlint Linter Server",
   "repository": {
@@ -7,18 +7,13 @@
     "url": "https://github.com/taichi/vscode-textlint"
   },
   "license": "MIT",
+  "main": "lib/server.js",
   "files": [
     "lib"
   ],
-  "main": "lib/server.js",
   "scripts": {
-    "clean": "rimraf lib",
+    "clean": "rimraf lib node_modules",
     "compile": "tsc -p .",
-    "fix": "run-s fix:prettier fix:eslint",
-    "fix:eslint": "eslint . --ext .ts --fix",
-    "fix:prettier": "prettier --write .",
-    "lint": "eslint --config .eslintrc.json src/**.ts",
-    "prepublishOnly": "npm run clean && npm run compile",
     "watch": "tsc -watch -p ./"
   },
   "dependencies": {
@@ -32,10 +27,6 @@
     "@types/node": "^16.11.4",
     "@typescript-eslint/eslint-plugin": "^5.1.0",
     "@typescript-eslint/parser": "^5.1.0",
-    "eslint": "^8.1.0",
-    "npm-check-updates": "^11.8.5",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^2.4.1",
     "rimraf": "^3.0.2",
     "typescript": "^4.4.4"
   },

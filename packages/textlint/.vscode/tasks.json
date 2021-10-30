@@ -12,15 +12,26 @@
     {
       "type": "npm",
       "script": "compile",
-      "problemMatcher": "$tsc-watch",
-      "isBackground": true,
+      "group": "build",
       "presentation": {
-        "reveal": "silent"
+        "panel": "dedicated",
+        "reveal": "never"
       },
+      "problemMatcher": ["$tsc", "$ts-webpack"]
+    },
+    {
+      "type": "npm",
+      "script": "watch",
+      "isBackground": true,
       "group": {
         "kind": "build",
         "isDefault": true
-      }
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "never"
+      },
+      "problemMatcher": ["$tsc-watch", "$ts-webpack-watch"]
     }
   ]
 }

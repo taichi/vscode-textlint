@@ -4,16 +4,16 @@
 			"path": "."
 		},
 		{
-			"path": "textlint"
+			"path": "packages/textlint"
 		},
 		{
-			"path": "textlint-server"
+			"path": "packages/textlint-server"
 		},
 		{
-			"path": "test"
+			"path": "packages/test"
 		},
 		{
-			"path": "test-workspace"
+			"path": "packages/test-workspace"
 		}
 	],
 	"settings": {

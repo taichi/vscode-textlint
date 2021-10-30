@@ -46,6 +46,11 @@ This extension contributes the following commands to the Command palette.
 
 ## Release Notes
 
+### 0.10.0
+
+- vscode workspace support
+- prepare for web-extension
+
 ### 0.9.0
 
 - add .textlintignore support

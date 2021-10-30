@@ -118,8 +118,12 @@ You need to reopen the workspace after installing textlint.`
 }
 
 function newClient(context: ExtensionContext): LanguageClient {
-  let module = require.resolve("@taichi/vscode-textlint-server");
-  let debugOptions = { execArgv: ["--nolazy", "--inspect=6004"] };
+  let module = URIUtils.joinPath(
+    context.extensionUri,
+    "dist",
+    "server.js"
+  ).fsPath;
+  let debugOptions = { execArgv: ["--nolazy", "--inspect=6011"] };
 
   let serverOptions: ServerOptions = {
     run: { module, transport: TransportKind.ipc },

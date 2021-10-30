@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 16
 
       - name: Get npm cache directory
         id: npm-cache
@@ -32,14 +32,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - run: cd textlint && rm package-lock.json
-      - run: cd textlint && npm install
-      - run: cd textlint-server && npm install
-      - run: cd test && npm install
-      - run: cd textlint && npm run prepare:dev
-      - run: cd textlint && npm run lint
-      - run: cd textlint && npm run compile
-      - run: cd textlint && npm test
+      - run: npm install
+      - run: cd packages/test && npm install
+      - run: npm run lint
+      - run: npm run compile
+      - run: npm run webpack
+      - run: npm test
 
   linux:
     name: Linux
@@ -60,7 +58,7 @@ jobs:
           sudo service xvfb start
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 16
 
       - uses: actions/cache@v2
         with:
@@ -69,14 +67,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - run: cd textlint && rm package-lock.json
-      - run: cd textlint && npm install
-      - run: cd textlint-server && npm install
-      - run: cd test && npm install
-      - run: cd textlint && npm run prepare:dev
-      - run: cd textlint && npm run lint
-      - run: cd textlint && npm run compile
-      - run: cd textlint && npm test
+      - run: npm install
+      - run: cd packages/test && npm install
+      - run: npm run lint
+      - run: npm run compile
+      - run: npm run webpack
+      - run: npm test
 
   darwin:
     name: macOS
@@ -88,7 +84,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 16
 
       - uses: actions/cache@v2
         with:
@@ -97,11 +93,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - run: cd textlint && rm package-lock.json
-      - run: cd textlint && npm install
-      - run: cd textlint-server && npm install
-      - run: cd test && npm install
-      - run: cd textlint && npm run prepare:dev
-      - run: cd textlint && npm run lint
-      - run: cd textlint && npm run compile
-      - run: cd textlint && npm test
+      - run: npm install
+      - run: cd packages/test && npm install
+      - run: npm run lint
+      - run: npm run compile
+      - run: npm run webpack
+      - run: npm test
