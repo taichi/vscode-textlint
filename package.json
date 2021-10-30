@@ -16,7 +16,7 @@
     "fix:prettier": "npm exec --ws -- prettier --write .",
     "sort": "npm exec --include-workspace-root --ws -- sort-package-json",
     "version": "npm version --ws ",
-    "update": "npm exec --ws -- ncu -u"
+    "upgrade": "npm exec --ws -- ncu -u"
   },
   "devDependencies": {
     "npm-check-updates": "^11.8.5",
