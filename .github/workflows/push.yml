@@ -32,14 +32,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - run: cd textlint && rm package-lock.json
-      - run: cd textlint && npm install
-      - run: cd textlint-server && npm install
-      - run: cd test && npm install
-      - run: cd textlint && npm run prepare:dev
-      - run: cd textlint && npm run lint
-      - run: cd textlint && npm run compile
-      - run: cd textlint && npm test
+      - run: cd packages/textlint && rm package-lock.json
+      - run: cd packages/textlint && npm install
+      - run: cd packages/textlint-server && npm install
+      - run: cd packages/test && npm install
+      - run: cd packages/textlint && npm run prepare:dev
+      - run: cd packages/textlint && npm run lint
+      - run: cd packages/textlint && npm run compile
+      - run: cd packages/textlint && npm test
 
   linux:
     name: Linux
@@ -69,14 +69,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - run: cd textlint && rm package-lock.json
-      - run: cd textlint && npm install
-      - run: cd textlint-server && npm install
-      - run: cd test && npm install
-      - run: cd textlint && npm run prepare:dev
-      - run: cd textlint && npm run lint
-      - run: cd textlint && npm run compile
-      - run: cd textlint && npm test
+      - run: cd packages/textlint && rm package-lock.json
+      - run: cd packages/textlint && npm install
+      - run: cd packages/textlint-server && npm install
+      - run: cd packages/test && npm install
+      - run: cd packages/textlint && npm run prepare:dev
+      - run: cd packages/textlint && npm run lint
+      - run: cd packages/textlint && npm run compile
+      - run: cd packages/textlint && npm test
 
   darwin:
     name: macOS
@@ -97,11 +97,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - run: cd textlint && rm package-lock.json
-      - run: cd textlint && npm install
-      - run: cd textlint-server && npm install
-      - run: cd test && npm install
-      - run: cd textlint && npm run prepare:dev
-      - run: cd textlint && npm run lint
-      - run: cd textlint && npm run compile
-      - run: cd textlint && npm test
+      - run: cd packages/textlint && rm package-lock.json
+      - run: cd packages/textlint && npm install
+      - run: cd packages/textlint-server && npm install
+      - run: cd packages/test && npm install
+      - run: cd packages/textlint && npm run prepare:dev
+      - run: cd packages/textlint && npm run lint
+      - run: cd packages/textlint && npm run compile
+      - run: cd packages/textlint && npm test
