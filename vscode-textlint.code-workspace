@@ -39,4 +39,11 @@
     },
     "typescript.tsdk": "./node_modules/typescript/lib"
   },
+  "extensions": {
+    "recommendations": [
+      "amodio.tsl-problem-matcher",
+      "dbaeumer.vscode-eslint",
+      "editorconfig.editorconfig"
+    ]
+  },
 }
