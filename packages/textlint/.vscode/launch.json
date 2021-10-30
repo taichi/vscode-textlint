@@ -12,8 +12,10 @@
         "--extensionDevelopmentPath=${workspaceFolder}",
         "--disable-extensions"
       ],
-      "outFiles": ["${workspaceFolder}/out/src/**/*.js"],
-      "preLaunchTask": "npm: compile"
+      "outFiles": ["${workspaceFolder}/dist/*.js"],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "preLaunchTask": "npm: watch"
     },
     {
       "name": "Run Extension with workspace",
@@ -25,8 +27,20 @@
         "--extensionDevelopmentPath=${workspaceFolder}",
         "--disable-extensions"
       ],
-      "outFiles": ["${workspaceFolder}/out/src/**/*.js"],
-      "preLaunchTask": "npm: compile"
+      "outFiles": ["${workspaceFolder}/dist/*.js"],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "preLaunchTask": "npm: watch"
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to Server",
+      "address": "localhost",
+      "protocol": "inspector",
+      "port": 6011,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/dist/*.js"]
     },
     {
       "name": "Test Extension",
@@ -39,8 +53,14 @@
         "--extensionTestsPath=${workspaceFolder}/out/test",
         "--disable-extensions"
       ],
-      "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
-      "preLaunchTask": "npm: compile"
+      "outFiles": ["${workspaceFolder}/dist/*.js"],
+      "preLaunchTask": "npm: pretest"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Run Extension + Attach Server",
+      "configurations": ["Run Extension", "Attach to Server"]
     }
   ]
 }

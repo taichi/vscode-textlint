@@ -8,6 +8,7 @@
   "scripts": {
     "clean": "npm run clean --ws",
     "compile": "npm run compile --ws",
+    "webpack": "npm run webpack -w vscode-textlint",
     "test": "npm run test --ws",
     "lint": "npm exec --ws -- eslint --config .eslintrc.json src/**.ts",
     "fix": "run-s fix:prettier fix:eslint",

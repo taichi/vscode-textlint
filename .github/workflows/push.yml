@@ -36,6 +36,7 @@ jobs:
       - run: cd packages/test && npm install
       - run: npm run lint
       - run: npm run compile
+      - run: npm run webpack
       - run: npm test
 
   linux:
@@ -70,6 +71,7 @@ jobs:
       - run: cd packages/test && npm install
       - run: npm run lint
       - run: npm run compile
+      - run: npm run webpack
       - run: npm test
 
   darwin:
@@ -95,4 +97,5 @@ jobs:
       - run: cd packages/test && npm install
       - run: npm run lint
       - run: npm run compile
+      - run: npm run webpack
       - run: npm test
