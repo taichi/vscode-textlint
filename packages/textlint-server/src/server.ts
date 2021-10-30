@@ -43,8 +43,7 @@ let trace: number;
 let settings;
 documents.listen(connection);
 
-const engineRepo: Map<string /* workspaceFolder uri */, TextLintEngine> =
-  new Map();
+const engineRepo: Map<string /* workspaceFolder uri */, TextLintEngine> = new Map();
 let fixRepo: Map<string /* uri */, TextlintFixRepository> = new Map();
 
 connection.onInitialize(async (params) => {
@@ -114,8 +113,7 @@ function lookupConfig(root: string): string | undefined {
 }
 
 function lookupIgnore(root: string): string | undefined {
-  const ignorePath =
-    settings.ignorePath || path.resolve(root, ".textlintignore");
+  const ignorePath = settings.ignorePath || path.resolve(root, ".textlintignore");
   if (fs.existsSync(ignorePath)) {
     return ignorePath;
   }
@@ -124,12 +122,7 @@ function lookupIgnore(root: string): string | undefined {
 async function resolveModule(root: string) {
   try {
     TRACE(`Module textlint resolve from ${root}`);
-    const path = await Files.resolveModulePath(
-      root,
-      "textlint",
-      settings.nodePath,
-      TRACE
-    );
+    const path = await Files.resolveModulePath(root, "textlint", settings.nodePath, TRACE);
     TRACE(`Module textlint got resolved to ${path}`);
     return loadModule(path);
   } catch (e) {
@@ -143,10 +136,7 @@ async function resolveModule(root: string) {
 declare const __webpack_require__: typeof require;
 declare const __non_webpack_require__: typeof require;
 function loadModule(moduleName: string) {
-  const r =
-    typeof __webpack_require__ === "function"
-      ? __non_webpack_require__
-      : require;
+  const r = typeof __webpack_require__ === "function" ? __non_webpack_require__ : require;
   try {
     return r(moduleName);
   } catch (err: any) {
@@ -293,22 +283,16 @@ async function validate(doc: TextDocument) {
   if (repo) {
     const [folder, engine] = lookupEngine(doc);
     const ext = URIUtils.extname(uri);
-    if (
-      engine &&
-      -1 < engine.availableExtensions.findIndex((s) => s === ext) &&
-      isTarget(folder, uri.fsPath)
-    ) {
+    if (engine && -1 < engine.availableExtensions.findIndex((s) => s === ext) && isTarget(folder, uri.fsPath)) {
       repo.clear();
       try {
         const results = await engine.executeOnText(doc.getText(), ext);
         TRACE("results", results);
         for (const result of results) {
-          const diagnostics = result.messages
-            .map(toDiagnostic)
-            .map(([msg, diag]) => {
-              repo.register(doc, diag, msg);
-              return diag;
-            });
+          const diagnostics = result.messages.map(toDiagnostic).map(([msg, diag]) => {
+            repo.register(doc, diag, msg);
+            return diag;
+          });
           TRACE(`sendDiagnostics ${doc.uri}`);
           connection.sendDiagnostics({ uri: doc.uri, diagnostics });
         }
@@ -332,13 +316,8 @@ function toDiagnosticSeverity(severity?: number): DiagnosticSeverity {
 }
 
 function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
-  let txt = message.ruleId
-    ? `${message.message} (${message.ruleId})`
-    : message.message;
-  let pos_start = Position.create(
-    Math.max(0, message.line - 1),
-    Math.max(0, message.column - 1)
-  );
+  let txt = message.ruleId ? `${message.message} (${message.ruleId})` : message.message;
+  let pos_start = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1));
   var offset = 0;
   if (message.message.indexOf("->") >= 0) {
     offset = message.message.indexOf(" ->");
@@ -348,10 +327,7 @@ function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
     // eslint-disable-next-line quotes
     offset = message.message.indexOf('"', message.message.indexOf('"') + 1) - 1;
   }
-  let pos_end = Position.create(
-    Math.max(0, message.line - 1),
-    Math.max(0, message.column - 1) + offset
-  );
+  let pos_end = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1) + offset);
   let diag: Diagnostic = {
     message: txt,
     severity: toDiagnosticSeverity(message.severity),
@@ -370,13 +346,7 @@ connection.onCodeAction((params) => {
   if (repo && repo.isEmpty() === false) {
     let doc = documents.get(uri);
     let toAction = (title, edits) => {
-      let cmd = Command.create(
-        title,
-        "textlint.applyTextEdits",
-        uri,
-        repo.version,
-        edits
-      );
+      let cmd = Command.create(title, "textlint.applyTextEdits", uri, repo.version, edits);
       return CodeAction.create(title, cmd, CodeActionKind.QuickFix);
     };
     let toTE = (af) => toTextEdit(doc, af);
@@ -398,10 +368,7 @@ connection.onCodeAction((params) => {
 
 function toTextEdit(textDocument: TextDocument, af: AutoFix): TextEdit {
   return TextEdit.replace(
-    Range.create(
-      textDocument.positionAt(af.fix.range[0]),
-      textDocument.positionAt(af.fix.range[1])
-    ),
+    Range.create(textDocument.positionAt(af.fix.range[0]), textDocument.positionAt(af.fix.range[1])),
     af.fix.text || ""
   );
 }
@@ -463,10 +430,7 @@ export function TRACE(message: string, data?: any) {
     case Trace.Verbose:
       let verbose = "";
       if (data) {
-        verbose =
-          typeof data === "string"
-            ? data
-            : JSON.stringify(data, Object.getOwnPropertyNames(data));
+        verbose = typeof data === "string" ? data : JSON.stringify(data, Object.getOwnPropertyNames(data));
       }
       connection.sendNotification(LogTraceNotification.type, {
         message,

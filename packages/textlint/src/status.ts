@@ -73,9 +73,7 @@ export class StatusBar {
 
   set serverRunning(sr: boolean) {
     this._serverRunning = sr;
-    this._delegate.tooltip = sr
-      ? "textlint server is running."
-      : "textlint server stopped.";
+    this._delegate.tooltip = sr ? "textlint server is running." : "textlint server stopped.";
     this.update();
   }
 

@@ -1,8 +1,4 @@
-import {
-  NotificationType0,
-  NotificationType,
-  RequestType,
-} from "vscode-jsonrpc";
+import { NotificationType0, NotificationType, RequestType } from "vscode-jsonrpc";
 import { TextDocumentIdentifier, TextEdit } from "vscode-languageserver-types";
 
 export namespace ExitNotification {
@@ -52,9 +48,7 @@ export namespace AllFixesRequest {
     edits: TextEdit[];
   }
 
-  export const type = new RequestType<Params, Result, void>(
-    "textDocument/textlint/allFixes"
-  );
+  export const type = new RequestType<Params, Result, void>("textDocument/textlint/allFixes");
 }
 
 export namespace StartProgressNotification {

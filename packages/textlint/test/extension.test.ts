@@ -2,14 +2,7 @@ import * as assert from "assert";
 import * as fs from "fs-extra";
 import * as path from "path";
 
-import {
-  workspace,
-  window,
-  commands,
-  Extension,
-  extensions,
-  Disposable,
-} from "vscode";
+import { workspace, window, commands, Extension, extensions, Disposable } from "vscode";
 import { ExtensionInternal } from "../src/extension";
 
 import { PublishDiagnosticsNotification } from "./types";
@@ -45,8 +38,7 @@ suite("Extension Tests", () => {
     const rootPath = workspace.workspaceFolders[0].uri.fsPath;
     let original = path.join(rootPath, "testtest.txt");
     let newfile = path.join(rootPath, "testtest2.txt");
-    let timelag = (ms = 100) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
+    let timelag = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms));
     const disposables: Disposable[] = [];
     setup(async () => {
       await fs.copy(original, newfile);
@@ -64,20 +56,17 @@ suite("Extension Tests", () => {
     });
     test("lint file", async () => {
       let waiter = new Promise((resolve, reject) => {
-        internals.client.onNotification(
-          PublishDiagnosticsNotification.type,
-          (p) => {
-            let d = p.diagnostics;
-            if (d.length === 0) {
-              return; // skip empty diagnostics
-            }
-            if (0 < d.length) {
-              resolve(0);
-            } else {
-              console.log(`assertion failed length:${d.length}`, d);
-            }
+        internals.client.onNotification(PublishDiagnosticsNotification.type, (p) => {
+          let d = p.diagnostics;
+          if (d.length === 0) {
+            return; // skip empty diagnostics
           }
-        );
+          if (0 < d.length) {
+            resolve(0);
+          } else {
+            console.log(`assertion failed length:${d.length}`, d);
+          }
+        });
       });
       let doc = await workspace.openTextDocument(newfile);
       await window.showTextDocument(doc);
@@ -91,9 +80,7 @@ suite("Extension Tests", () => {
           } else {
             let s = `length:${edits.length} `;
             s += edits.map((ed) => `newText:${ed.newText}`).join(" ");
-            reject(
-              `assertion failed ${ok} ${ed.document.getText()} edits=${s}`
-            );
+            reject(`assertion failed ${ok} ${ed.document.getText()} edits=${s}`);
           }
         });
       });

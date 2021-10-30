@@ -13,7 +13,7 @@
     "lint": "npm exec --ws -- eslint --config .eslintrc.json src/**.ts",
     "fix": "run-s fix:prettier fix:eslint",
     "fix:eslint": "npm exec --ws -- eslint . --ext .ts --fix",
-    "fix:prettier": "npm exec --ws -- prettier --write . --ignore-path ../../.gitignore",
+    "fix:prettier": "npm exec --ws -- prettier --write .  --config ../../package.json --ignore-path ../../.gitignore",
     "sort": "npm exec --include-workspace-root --ws -- sort-package-json",
     "version": "npm version --ws ",
     "upgrade": "npm exec --ws -- ncu -u"
@@ -25,5 +25,9 @@
   },
   "engines": {
     "node": ">=16.0.0"
+  },
+  "prettier": {
+    "printWidth": 120,
+    "ignorePath": "./.gitignore"
   }
 }

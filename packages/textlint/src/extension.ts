@@ -21,12 +21,7 @@ import {
   RevealOutputChannelOn,
 } from "vscode-languageclient";
 
-import {
-  LanguageClient,
-  LanguageClientOptions,
-  ServerOptions,
-  TransportKind,
-} from "vscode-languageclient/node";
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient/node";
 
 import { LogTraceNotification } from "vscode-jsonrpc";
 
@@ -47,9 +42,7 @@ import { Status, StatusBar } from "./status";
 export interface ExtensionInternal {
   client: LanguageClient;
   statusBar: StatusBar;
-  onAllFixesComplete(
-    fn: (te: TextEditor, edits: TextEdit[], ok: boolean) => void
-  );
+  onAllFixesComplete(fn: (te: TextEditor, edits: TextEdit[], ok: boolean) => void);
 }
 
 export function activate(context: ExtensionContext): ExtensionInternal {
@@ -59,15 +52,12 @@ export function activate(context: ExtensionContext): ExtensionInternal {
     client.onDidChangeState((event) => {
       statusBar.serverRunning = event.newState === ServerState.Running;
     });
-    client.onNotification(
-      StatusNotification.type,
-      (p: StatusNotification.StatusParams) => {
-        statusBar.status = to(p.status);
-        if (p.message || p.cause) {
-          statusBar.status.log(client, p.message, p.cause);
-        }
+    client.onNotification(StatusNotification.type, (p: StatusNotification.StatusParams) => {
+      statusBar.status = to(p.status);
+      if (p.message || p.cause) {
+        statusBar.status.log(client, p.message, p.cause);
       }
-    );
+    });
     client.onNotification(NoConfigNotification.type, (p) => {
       statusBar.status = Status.WARN;
       statusBar.status.log(
@@ -85,16 +75,10 @@ To use textlint in this workspace please install textlint using \'npm install te
 You need to reopen the workspace after installing textlint.`
       );
     });
-    client.onNotification(StartProgressNotification.type, () =>
-      statusBar.startProgress()
-    );
-    client.onNotification(StopProgressNotification.type, () =>
-      statusBar.stopProgress()
-    );
+    client.onNotification(StartProgressNotification.type, () => statusBar.startProgress());
+    client.onNotification(StopProgressNotification.type, () => statusBar.stopProgress());
 
-    client.onNotification(LogTraceNotification.type, (p) =>
-      client.info(p.message, p.verbose)
-    );
+    client.onNotification(LogTraceNotification.type, (p) => client.info(p.message, p.verbose));
     let changeConfigHandler = () => configureAutoFixOnSave(client);
     workspace.onDidChangeConfiguration(changeConfigHandler);
     changeConfigHandler();
@@ -103,9 +87,7 @@ You need to reopen the workspace after installing textlint.`
     commands.registerCommand("textlint.createConfig", createConfig),
     commands.registerCommand("textlint.applyTextEdits", makeApplyFixFn(client)),
     commands.registerCommand("textlint.executeAutofix", makeAutoFixFn(client)),
-    commands.registerCommand("textlint.showOutputChannel", () =>
-      client.outputChannel.show()
-    ),
+    commands.registerCommand("textlint.showOutputChannel", () => client.outputChannel.show()),
     client.start(),
     statusBar
   );
@@ -118,11 +100,7 @@ You need to reopen the workspace after installing textlint.`
 }
 
 function newClient(context: ExtensionContext): LanguageClient {
-  let module = URIUtils.joinPath(
-    context.extensionUri,
-    "dist",
-    "server.js"
-  ).fsPath;
+  let module = URIUtils.joinPath(context.extensionUri, "dist", "server.js").fsPath;
   let debugOptions = { execArgv: ["--nolazy", "--inspect=6011"] };
 
   let serverOptions: ServerOptions = {
@@ -196,9 +174,7 @@ async function createConfig() {
   const noConfigs = await filterNoConfigFolders(folders);
 
   if (noConfigs.length < 1 && 0 < folders.length) {
-    await window.showErrorMessage(
-      "textlint configuration file already exists in this workspace."
-    );
+    await window.showErrorMessage("textlint configuration file already exists in this workspace.");
     return;
   }
 
@@ -212,9 +188,7 @@ async function createConfig() {
   }
 }
 
-async function filterNoConfigFolders(
-  folders: readonly WorkspaceFolder[]
-): Promise<WorkspaceFolder[]> {
+async function filterNoConfigFolders(folders: readonly WorkspaceFolder[]): Promise<WorkspaceFolder[]> {
   const result = [];
   outer: for (let folder of folders) {
     const candidates = ["", ".js", ".yaml", ".yml", ".json"].map((ext) =>
@@ -246,9 +220,7 @@ async function emitConfig(folder: WorkspaceFolder) {
   }
 }
 
-function toQuickPickItems(
-  folders: WorkspaceFolder[]
-): ({ folder: WorkspaceFolder } & QuickPickItem)[] {
+function toQuickPickItems(folders: WorkspaceFolder[]): ({ folder: WorkspaceFolder } & QuickPickItem)[] {
   return folders.map((folder) => {
     return {
       label: folder.name,
@@ -280,13 +252,11 @@ function configureAutoFixOnSave(client: LanguageClient) {
         let version = doc.version;
         let uri: string = doc.uri.toString();
         event.waitUntil(
-          client
-            .sendRequest(AllFixesRequest.type, { textDocument: { uri } })
-            .then((result: AllFixesRequest.Result) => {
-              return result && result.documentVersion === version
-                ? client.protocol2CodeConverter.asTextEdits(result.edits)
-                : [];
-            })
+          client.sendRequest(AllFixesRequest.type, { textDocument: { uri } }).then((result: AllFixesRequest.Result) => {
+            return result && result.documentVersion === version
+              ? client.protocol2CodeConverter.asTextEdits(result.edits)
+              : [];
+          })
         );
       }
     });
@@ -308,19 +278,11 @@ function makeAutoFixFn(client: LanguageClient) {
       client.sendRequest(AllFixesRequest.type, { textDocument: { uri } }).then(
         async (result: AllFixesRequest.Result) => {
           if (result) {
-            await applyTextEdits(
-              client,
-              uri,
-              result.documentVersion,
-              result.edits
-            );
+            await applyTextEdits(client, uri, result.documentVersion, result.edits);
           }
         },
         (error) => {
-          client.error(
-            "Failed to apply textlint fixes to the document.",
-            error
-          );
+          client.error("Failed to apply textlint fixes to the document.", error);
         }
       );
     }
@@ -334,9 +296,7 @@ function makeApplyFixFn(client: LanguageClient) {
 }
 
 const allFixesCompletes = [];
-function onAllFixesComplete(
-  fn: (te: TextEditor, edits: TextEdit[], ok: boolean) => void
-) {
+function onAllFixesComplete(fn: (te: TextEditor, edits: TextEdit[], ok: boolean) => void) {
   allFixesCompletes.push(fn);
 }
 
@@ -351,12 +311,7 @@ async function applyTextEdits(
     if (textEditor.document.version === documentVersion) {
       return textEditor
         .edit((mutator) => {
-          edits.forEach((ed) =>
-            mutator.replace(
-              client.protocol2CodeConverter.asRange(ed.range),
-              ed.newText
-            )
-          );
+          edits.forEach((ed) => mutator.replace(client.protocol2CodeConverter.asRange(ed.range), ed.newText));
         })
         .then(
           (ok) => {
@@ -369,9 +324,7 @@ async function applyTextEdits(
           }
         );
     } else {
-      window.showInformationMessage(
-        `textlint fixes are outdated and can't be applied to ${uri}`
-      );
+      window.showInformationMessage(`textlint fixes are outdated and can't be applied to ${uri}`);
       return true;
     }
   }

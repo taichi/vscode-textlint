@@ -7,11 +7,7 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": [
-        "${workspaceFolder}/../test",
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "--disable-extensions"
-      ],
+      "args": ["${workspaceFolder}/../test", "--extensionDevelopmentPath=${workspaceFolder}", "--disable-extensions"],
       "outFiles": ["${workspaceFolder}/dist/*.js"],
       "stopOnEntry": false,
       "sourceMaps": true,
