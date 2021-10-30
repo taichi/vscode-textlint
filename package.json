@@ -13,7 +13,7 @@
     "lint": "npm exec --ws -- eslint --config .eslintrc.json src/**.ts",
     "fix": "run-s fix:prettier fix:eslint",
     "fix:eslint": "npm exec --ws -- eslint . --ext .ts --fix",
-    "fix:prettier": "npm exec --ws -- prettier --write .",
+    "fix:prettier": "npm exec --ws -- prettier --write . --ignore-path ../../.gitignore",
     "sort": "npm exec --include-workspace-root --ws -- sort-package-json",
     "version": "npm version --ws ",
     "upgrade": "npm exec --ws -- ncu -u"
