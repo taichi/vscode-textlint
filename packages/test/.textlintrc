@@ -1,9 +1,6 @@
 {
   "plugins": {
-    "latex2e": {}, 
-    "html": {
-      "extensions": [".vue"]
-    }
+    "latex2e": {}
   },
   "filters": {},
   "rules": {
