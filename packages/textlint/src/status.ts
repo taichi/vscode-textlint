@@ -5,12 +5,12 @@ export interface Status {
   color: string;
   log: (
     logger: {
-      info(message: string, data?: any): void;
-      warn(message: string, data?: any): void;
-      error(message: string, data?: any): void;
+      info(message: string, data?: unknown): void;
+      warn(message: string, data?: unknown): void;
+      error(message: string, data?: unknown): void;
     },
     msg: string,
-    data?: any
+    data?: unknown
   ) => void;
 }
 
@@ -93,11 +93,11 @@ export class StatusBar {
   startProgress() {
     if (!this._intervalToken) {
       let c = 0;
-      let orig = this._delegate.text;
-      let chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
-      let l = chars.length;
+      const orig = this._delegate.text;
+      const chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
+      const l = chars.length;
       this._intervalToken = setInterval(() => {
-        let t = c++ % l;
+        const t = c++ % l;
         this._delegate.text = chars[t] + " " + orig;
       }, 300);
     }
@@ -105,7 +105,7 @@ export class StatusBar {
 
   stopProgress() {
     if (this._intervalToken) {
-      let tk = this._intervalToken;
+      const tk = this._intervalToken;
       this._intervalToken = null;
       clearInterval(tk);
       this.update();

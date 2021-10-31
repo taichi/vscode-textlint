@@ -46,8 +46,8 @@ export interface ExtensionInternal {
 }
 
 export function activate(context: ExtensionContext): ExtensionInternal {
-  let client = newClient(context);
-  let statusBar = new StatusBar(getConfig("languages"));
+  const client = newClient(context);
+  const statusBar = new StatusBar(getConfig("languages"));
   client.onReady().then(() => {
     client.onDidChangeState((event) => {
       statusBar.serverRunning = event.newState === ServerState.Running;
@@ -71,7 +71,7 @@ File will not be validated. Consider running the 'Create .textlintrc file' comma
       statusBar.status.log(
         client,
         `Failed to load the textlint library in ${p.workspaceFolder} .
-To use textlint in this workspace please install textlint using \'npm install textlint\' or globally using \'npm install -g textlint\'.
+To use textlint in this workspace please install textlint using 'npm install textlint' or globally using 'npm install -g textlint'.
 You need to reopen the workspace after installing textlint.`
       );
     });
@@ -79,7 +79,7 @@ You need to reopen the workspace after installing textlint.`
     client.onNotification(StopProgressNotification.type, () => statusBar.stopProgress());
 
     client.onNotification(LogTraceNotification.type, (p) => client.info(p.message, p.verbose));
-    let changeConfigHandler = () => configureAutoFixOnSave(client);
+    const changeConfigHandler = () => configureAutoFixOnSave(client);
     workspace.onDidChangeConfiguration(changeConfigHandler);
     changeConfigHandler();
   });
@@ -100,21 +100,21 @@ You need to reopen the workspace after installing textlint.`
 }
 
 function newClient(context: ExtensionContext): LanguageClient {
-  let module = URIUtils.joinPath(context.extensionUri, "dist", "server.js").fsPath;
-  let debugOptions = { execArgv: ["--nolazy", "--inspect=6011"] };
+  const module = URIUtils.joinPath(context.extensionUri, "dist", "server.js").fsPath;
+  const debugOptions = { execArgv: ["--nolazy", "--inspect=6011"] };
 
-  let serverOptions: ServerOptions = {
+  const serverOptions: ServerOptions = {
     run: { module, transport: TransportKind.ipc },
     debug: { module, transport: TransportKind.ipc, options: debugOptions },
   };
 
+  // eslint-disable-next-line prefer-const
   let defaultErrorHandler: ErrorHandler;
-  let languages = getConfig<string[]>("languages").map((id) => {
-    return { language: id, scheme: "file" };
-  });
   let serverCalledProcessExit = false;
-  let clientOptions: LanguageClientOptions = {
-    documentSelector: languages,
+  const clientOptions: LanguageClientOptions = {
+    documentSelector: getConfig<string[]>("languages").map((id) => {
+      return { language: id, scheme: "file" };
+    }),
     diagnosticCollectionName: "textlint",
     revealOutputChannelOn: RevealOutputChannelOn.Error,
     synchronize: {
@@ -152,7 +152,7 @@ function newClient(context: ExtensionContext): LanguageClient {
     },
   };
 
-  let client = new LanguageClient("textlint", serverOptions, clientOptions);
+  const client = new LanguageClient("textlint", serverOptions, clientOptions);
   defaultErrorHandler = client.createDefaultErrorHandler();
   client.onReady().then(() => {
     client.onNotification(ExitNotification.type, () => {
@@ -190,14 +190,15 @@ async function createConfig() {
 
 async function filterNoConfigFolders(folders: readonly WorkspaceFolder[]): Promise<WorkspaceFolder[]> {
   const result = [];
-  outer: for (let folder of folders) {
+  outer: for (const folder of folders) {
     const candidates = ["", ".js", ".yaml", ".yml", ".json"].map((ext) =>
       URIUtils.joinPath(folder.uri, ".textlintrc" + ext)
     );
-    for (let configPath of candidates) {
+    for (const configPath of candidates) {
       try {
         await workspace.fs.stat(configPath);
         continue outer;
+        // eslint-disable-next-line no-empty
       } catch {}
     }
     result.push(folder);
@@ -233,14 +234,14 @@ function toQuickPickItems(folders: WorkspaceFolder[]): ({ folder: WorkspaceFolde
 let autoFixOnSave: Disposable;
 
 function configureAutoFixOnSave(client: LanguageClient) {
-  let auto = getConfig("autoFixOnSave", false);
+  const auto = getConfig("autoFixOnSave", false);
   disposeAutoFixOnSave();
 
   if (auto) {
-    let languages = new Set(getConfig("languages"));
+    const languages = new Set(getConfig("languages"));
     autoFixOnSave = workspace.onWillSaveTextDocument((event) => {
-      let doc = event.document;
-      let target = getConfig("targetPath", null);
+      const doc = event.document;
+      const target = getConfig("targetPath", null);
       if (
         languages.has(doc.languageId) &&
         event.reason !== TextDocumentSaveReason.AfterDelay &&
@@ -249,8 +250,8 @@ function configureAutoFixOnSave(client: LanguageClient) {
             matchBase: true,
           }))
       ) {
-        let version = doc.version;
-        let uri: string = doc.uri.toString();
+        const version = doc.version;
+        const uri: string = doc.uri.toString();
         event.waitUntil(
           client.sendRequest(AllFixesRequest.type, { textDocument: { uri } }).then((result: AllFixesRequest.Result) => {
             return result && result.documentVersion === version
@@ -272,9 +273,9 @@ function disposeAutoFixOnSave() {
 
 function makeAutoFixFn(client: LanguageClient) {
   return () => {
-    let textEditor = window.activeTextEditor;
+    const textEditor = window.activeTextEditor;
     if (textEditor) {
-      let uri: string = textEditor.document.uri.toString();
+      const uri: string = textEditor.document.uri.toString();
       client.sendRequest(AllFixesRequest.type, { textDocument: { uri } }).then(
         async (result: AllFixesRequest.Result) => {
           if (result) {
@@ -306,7 +307,7 @@ async function applyTextEdits(
   documentVersion: number,
   edits: TextEdit[]
 ): Promise<boolean> {
-  let textEditor = window.activeTextEditor;
+  const textEditor = window.activeTextEditor;
   if (textEditor && textEditor.document.uri.toString() === uri) {
     if (textEditor.document.version === documentVersion) {
       return textEditor

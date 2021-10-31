@@ -12,7 +12,7 @@ interface TextLintMessage {
   ruleId: string;
   message: string;
   // optional data
-  data?: any;
+  data?: unknown;
   // FixCommand
   fix?: TextLintFixCommand;
   // location info

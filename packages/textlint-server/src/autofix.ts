@@ -11,7 +11,7 @@ export class TextlintFixRepository {
 
   register(doc: TextDocument, diag: Diagnostic, msg: TextLintMessage) {
     if (msg.fix && msg.ruleId) {
-      let fix = {
+      const fix = {
         version: doc.version,
         ruleId: msg.ruleId,
         fix: msg.fix,
@@ -27,7 +27,7 @@ export class TextlintFixRepository {
   clear = () => this.map.clear();
 
   toKey(diagnostic: Diagnostic): string {
-    let range = diagnostic.range;
+    const range = diagnostic.range;
     return `[${range.start.line},${range.start.character},${range.end.line},${range.end.character}]-${diagnostic.code}`;
   }
 
@@ -36,15 +36,15 @@ export class TextlintFixRepository {
   }
 
   get version(): number {
-    let af = this.map.values().next().value;
+    const af = this.map.values().next().value;
     return af ? af.version : -1;
   }
 
   sortedValues(): AutoFix[] {
-    let a = Array.from(this.map.values());
+    const a = Array.from(this.map.values());
     return a.sort((left, right) => {
-      let lr = left.fix.range;
-      let rr = right.fix.range;
+      const lr = left.fix.range;
+      const rr = right.fix.range;
       if (lr[0] === rr[0]) {
         if (lr[1] === rr[1]) {
           return 0;
@@ -59,12 +59,12 @@ export class TextlintFixRepository {
     return !!lastEdit && lastEdit.fix.range[1] > newEdit.fix.range[0];
   }
 
-  separatedValues(filter: (ArutoFix) => boolean = () => true): AutoFix[] {
-    let sv = this.sortedValues().filter(filter);
+  separatedValues(filter: (fix) => boolean = () => true): AutoFix[] {
+    const sv = this.sortedValues().filter(filter);
     if (sv.length < 1) {
       return sv;
     }
-    let result: AutoFix[] = [];
+    const result: AutoFix[] = [];
     result.push(sv[0]);
     sv.reduce((prev, cur) => {
       if (TextlintFixRepository.overlaps(prev, cur) === false) {

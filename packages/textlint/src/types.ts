@@ -18,7 +18,7 @@ export namespace StatusNotification {
   export interface StatusParams {
     status: Status;
     message?: string;
-    cause?: any;
+    cause?: unknown;
   }
   export const type = new NotificationType<StatusParams>("textlint/status");
 }

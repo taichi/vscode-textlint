@@ -37,14 +37,14 @@ import {
 
 import { TextlintFixRepository, AutoFix } from "./autofix";
 
-let connection = createConnection(ProposedFeatures.all);
-let documents = new TextDocuments(TextDocument);
+const connection = createConnection(ProposedFeatures.all);
+const documents = new TextDocuments(TextDocument);
 let trace: number;
 let settings;
 documents.listen(connection);
 
 const engineRepo: Map<string /* workspaceFolder uri */, TextLintEngine> = new Map();
-let fixRepo: Map<string /* uri */, TextlintFixRepository> = new Map();
+const fixRepo: Map<string /* uri */, TextlintFixRepository> = new Map();
 
 connection.onInitialize(async (params) => {
   settings = params.initializationOptions;
@@ -94,7 +94,7 @@ async function configureEngine(folders: WorkspaceFolder[]) {
 }
 
 function lookupConfig(root: string): string | undefined {
-  let roots = [
+  const roots = [
     candidates(root),
     () => {
       return fs.existsSync(settings.configPath) ? [settings.configPath] : [];
@@ -102,7 +102,7 @@ function lookupConfig(root: string): string | undefined {
     candidates(os.homedir()),
   ];
   for (const fn of roots) {
-    let files = fn();
+    const files = fn();
     if (0 < files.length) {
       return files[0];
     }
@@ -139,7 +139,7 @@ function loadModule(moduleName: string) {
   const r = typeof __webpack_require__ === "function" ? __non_webpack_require__ : require;
   try {
     return r(moduleName);
-  } catch (err: any) {
+  } catch (err) {
     TRACE("load failed", err);
   }
   return undefined;
@@ -158,27 +158,27 @@ async function reConfigure() {
 }
 
 connection.onDidChangeConfiguration(async (change) => {
-  let newone = change.settings.textlint;
+  const newone = change.settings.textlint;
   TRACE(`onDidChangeConfiguration ${JSON.stringify(newone)}`);
   settings = newone;
   trace = Trace.fromString(newone.trace);
   await reConfigure();
 });
 
-connection.onDidChangeWatchedFiles(async (params) => {
+connection.onDidChangeWatchedFiles(async () => {
   TRACE("onDidChangeWatchedFiles");
   await reConfigure();
 });
 
 documents.onDidChangeContent(async (event) => {
-  let uri = event.document.uri;
+  const uri = event.document.uri;
   TRACE(`onDidChangeContent ${uri}`, settings.run);
   if (settings.run === "onType") {
     return validateSingle(event.document);
   }
 });
 documents.onDidSave(async (event) => {
-  let uri = event.document.uri;
+  const uri = event.document.uri;
   TRACE(`onDidSave ${uri}`, settings.run);
   if (settings.run === "onSave") {
     return validateSingle(event.document);
@@ -186,7 +186,7 @@ documents.onDidSave(async (event) => {
 });
 
 documents.onDidOpen(async (event) => {
-  let uri = event.document.uri;
+  const uri = event.document.uri;
   TRACE(`onDidOpen ${uri}`);
   if (uri.startsWith("file:") && fixRepo.has(uri) === false) {
     fixRepo.set(uri, new TextlintFixRepository());
@@ -202,7 +202,7 @@ function clearDiagnostics(uri) {
   }
 }
 documents.onDidClose((event) => {
-  let uri = event.document.uri;
+  const uri = event.document.uri;
   TRACE(`onDidClose ${uri}`);
   clearDiagnostics(uri);
 });
@@ -217,7 +217,7 @@ async function validateSingle(textDocument: TextDocument) {
 }
 
 async function validateMany(textDocuments: TextDocument[]) {
-  let tracker = new ErrorMessageTracker();
+  const tracker = new ErrorMessageTracker();
   sendStartProgress();
   for (const doc of textDocuments) {
     try {
@@ -316,9 +316,9 @@ function toDiagnosticSeverity(severity?: number): DiagnosticSeverity {
 }
 
 function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
-  let txt = message.ruleId ? `${message.message} (${message.ruleId})` : message.message;
-  let pos_start = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1));
-  var offset = 0;
+  const txt = message.ruleId ? `${message.message} (${message.ruleId})` : message.message;
+  const pos_start = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1));
+  let offset = 0;
   if (message.message.indexOf("->") >= 0) {
     offset = message.message.indexOf(" ->");
   }
@@ -327,8 +327,8 @@ function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
     // eslint-disable-next-line quotes
     offset = message.message.indexOf('"', message.message.indexOf('"') + 1) - 1;
   }
-  let pos_end = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1) + offset);
-  let diag: Diagnostic = {
+  const pos_end = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1) + offset);
+  const diag: Diagnostic = {
     message: txt,
     severity: toDiagnosticSeverity(message.severity),
     source: "textlint",
@@ -340,25 +340,25 @@ function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
 
 connection.onCodeAction((params) => {
   TRACE("onCodeAction", params);
-  let result: CodeAction[] = [];
-  let uri = params.textDocument.uri;
-  let repo = fixRepo.get(uri);
+  const result: CodeAction[] = [];
+  const uri = params.textDocument.uri;
+  const repo = fixRepo.get(uri);
   if (repo && repo.isEmpty() === false) {
-    let doc = documents.get(uri);
-    let toAction = (title, edits) => {
-      let cmd = Command.create(title, "textlint.applyTextEdits", uri, repo.version, edits);
+    const doc = documents.get(uri);
+    const toAction = (title, edits) => {
+      const cmd = Command.create(title, "textlint.applyTextEdits", uri, repo.version, edits);
       return CodeAction.create(title, cmd, CodeActionKind.QuickFix);
     };
-    let toTE = (af) => toTextEdit(doc, af);
+    const toTE = (af) => toTextEdit(doc, af);
 
     repo.find(params.context.diagnostics).forEach((af) => {
       result.push(toAction(`Fix this ${af.ruleId} problem`, [toTE(af)]));
-      let same = repo.separatedValues((v) => v.ruleId === af.ruleId);
+      const same = repo.separatedValues((v) => v.ruleId === af.ruleId);
       if (0 < same.length) {
         result.push(toAction(`Fix all ${af.ruleId} problems`, same.map(toTE)));
       }
     });
-    let all = repo.separatedValues();
+    const all = repo.separatedValues();
     if (0 < all.length) {
       result.push(toAction(`Fix all auto-fixable problems`, all.map(toTE)));
     }
@@ -374,10 +374,10 @@ function toTextEdit(textDocument: TextDocument, af: AutoFix): TextEdit {
 }
 
 connection.onRequest(AllFixesRequest.type, (params: AllFixesRequest.Params) => {
-  let uri = params.textDocument.uri;
+  const uri = params.textDocument.uri;
   TRACE(`AllFixesRequest ${uri}`);
-  let textDocument = documents.get(uri);
-  let repo = fixRepo.get(uri);
+  const textDocument = documents.get(uri);
+  const repo = fixRepo.get(uri);
   if (repo && repo.isEmpty() === false) {
     return {
       documentVersion: repo.version,
@@ -412,7 +412,7 @@ function sendOK() {
 }
 function sendError(error) {
   TRACE(`sendError ${error}`);
-  let msg = error.message ? error.message : error;
+  const msg = error.message ? error.message : error;
   connection.sendNotification(StatusNotification.type, {
     status: StatusNotification.Status.ERROR,
     message: <string>msg,
@@ -420,7 +420,15 @@ function sendError(error) {
   });
 }
 
-export function TRACE(message: string, data?: any) {
+function toVerbose(data?: unknown): string {
+  let verbose = "";
+  if (data) {
+    verbose = typeof data === "string" ? data : JSON.stringify(data, Object.getOwnPropertyNames(data));
+  }
+  return verbose;
+}
+
+export function TRACE(message: string, data?: unknown) {
   switch (trace) {
     case Trace.Messages:
       connection.sendNotification(LogTraceNotification.type, {
@@ -428,13 +436,9 @@ export function TRACE(message: string, data?: any) {
       });
       break;
     case Trace.Verbose:
-      let verbose = "";
-      if (data) {
-        verbose = typeof data === "string" ? data : JSON.stringify(data, Object.getOwnPropertyNames(data));
-      }
       connection.sendNotification(LogTraceNotification.type, {
         message,
-        verbose,
+        verbose: toVerbose(data),
       });
       break;
     case Trace.Off:
