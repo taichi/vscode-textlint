@@ -14,7 +14,7 @@ suite("Extension Tests", () => {
     commands.executeCommand("textlint.showOutputChannel");
 
     function waitForActive(resolve): void {
-      let ext = extensions.getExtension("taichi.vscode-textlint");
+      const ext = extensions.getExtension("taichi.vscode-textlint");
       if (typeof ext === "undefined" || ext.isActive === false) {
         setTimeout(waitForActive.bind(null, resolve), 50);
       } else {
@@ -36,17 +36,17 @@ suite("Extension Tests", () => {
 
   suite("with server", function () {
     const rootPath = workspace.workspaceFolders[0].uri.fsPath;
-    let original = path.join(rootPath, "testtest.txt");
-    let newfile = path.join(rootPath, "testtest2.txt");
-    let timelag = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms));
+    const original = path.join(rootPath, "testtest.txt");
+    const newfile = path.join(rootPath, "testtest2.txt");
+    //const timelag = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms));
     const disposables: Disposable[] = [];
     setup(async () => {
       await fs.copy(original, newfile);
       await internals.client.onReady();
     });
     teardown(async () => {
-      let p = new Promise((resolve) => {
-        fs.unlink(newfile, (err) => {
+      const p = new Promise((resolve) => {
+        fs.unlink(newfile, () => {
           resolve(0);
         });
       });
@@ -55,9 +55,9 @@ suite("Extension Tests", () => {
       disposables.forEach((d) => d.dispose());
     });
     test("lint file", async () => {
-      let waiter = new Promise((resolve, reject) => {
+      const waiter = new Promise((resolve) => {
         internals.client.onNotification(PublishDiagnosticsNotification.type, (p) => {
-          let d = p.diagnostics;
+          const d = p.diagnostics;
           if (d.length === 0) {
             return; // skip empty diagnostics
           }
@@ -68,12 +68,12 @@ suite("Extension Tests", () => {
           }
         });
       });
-      let doc = await workspace.openTextDocument(newfile);
+      const doc = await workspace.openTextDocument(newfile);
       await window.showTextDocument(doc);
       await waiter;
     });
     test("fix file", async () => {
-      let p = new Promise((resolve, reject) => {
+      const p = new Promise((resolve, reject) => {
         internals.onAllFixesComplete((ed, edits, ok) => {
           if (ok && 0 < edits.length) {
             resolve("ok");
@@ -84,7 +84,7 @@ suite("Extension Tests", () => {
           }
         });
       });
-      let doc = await workspace.openTextDocument(newfile);
+      const doc = await workspace.openTextDocument(newfile);
       await window.showTextDocument(doc);
       await commands.executeCommand("textlint.executeAutofix");
       await p;
