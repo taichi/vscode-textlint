@@ -1,21 +1,10 @@
 {
-  "parser": "@typescript-eslint/parser",
-  "root": true,
-  "parserOptions": {
-    "ecmaVersion": 6,
-    "sourceType": "module"
-  },
-  "plugins": ["@typescript-eslint"],
-  "env": {
-    "node": true
-  },
-  "rules": {
-    "semi": "off",
-    "@typescript-eslint/semi": "error",
-    "no-extra-semi": "warn",
-    "curly": "warn",
-    "quotes": ["error", "double", { "allowTemplateLiterals": true }],
-    "eqeqeq": "error",
+	"root": true,
+	"extends": "../.eslintrc.base.json",
+	"parserOptions": {
+		"project": ["./tsconfig.json"]
+	},
+	"rules": {
     "no-console": "error"
-  }
+	}
 }
