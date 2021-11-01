@@ -16,7 +16,7 @@ export function activate(context: ExtensionContext): ExtensionInternal {
 }
 
 function newNodeClient(context: ExtensionContext): CommonLanguageClient {
-  const module = URIUtils.joinPath(context.extensionUri, "dist", "server.js").fsPath;
+  const module = URIUtils.joinPath(context.extensionUri, "dist", "node", "server.js").fsPath;
 
   const serverOptions: ServerOptions = {
     run: { module, transport: TransportKind.ipc },

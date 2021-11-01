@@ -8,7 +8,7 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": ["${workspaceFolder}/../test", "--extensionDevelopmentPath=${workspaceFolder}", "--disable-extensions"],
-      "outFiles": ["${workspaceFolder}/dist/*.js"],
+      "outFiles": ["${workspaceFolder}/dist/node/*.js"],
       "stopOnEntry": false,
       "sourceMaps": true,
       "preLaunchTask": "npm: watch"
@@ -23,7 +23,7 @@
         "--extensionDevelopmentPath=${workspaceFolder}",
         "--disable-extensions"
       ],
-      "outFiles": ["${workspaceFolder}/dist/*.js"],
+      "outFiles": ["${workspaceFolder}/dist/node/*.js"],
       "stopOnEntry": false,
       "sourceMaps": true,
       "preLaunchTask": "npm: watch"
@@ -36,7 +36,7 @@
       "protocol": "inspector",
       "port": 6011,
       "sourceMaps": true,
-      "outFiles": ["${workspaceFolder}/dist/*.js"]
+      "outFiles": ["${workspaceFolder}/dist/node/*.js"]
     },
     {
       "name": "Test Extension",
@@ -46,10 +46,10 @@
       "args": [
         "${workspaceFolder}/../test",
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/test",
+        "--extensionTestsPath=${workspaceFolder}/out/test/node",
         "--disable-extensions"
       ],
-      "outFiles": ["${workspaceFolder}/dist/*.js"],
+      "outFiles": ["${workspaceFolder}/dist/node/*.js"],
       "preLaunchTask": "npm: pretest"
     }
   ],

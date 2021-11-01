@@ -16,7 +16,7 @@
   },
   "license": "MIT",
   "publisher": "taichi",
-  "main": "./dist/extension",
+  "main": "./dist/node/extension",
   "scripts": {
     "clean": "rimraf dist out node_modules",
     "clean:server": "cd ../textlint-server && npm run clean",

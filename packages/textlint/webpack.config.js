@@ -13,7 +13,6 @@ const merge = require("merge-options");
 const config = {
   target: "node",
   output: {
-    path: path.resolve(__dirname, "dist"),
     libraryTarget: "commonjs",
   },
   stats: {
@@ -48,6 +47,7 @@ const config = {
 const client = merge(config, {
   entry: "./src/node/extension.ts",
   output: {
+    path: path.resolve(__dirname, "dist", "node"),
     filename: "extension.js",
   },
   plugins: [
@@ -62,6 +62,7 @@ const client = merge(config, {
 const server = merge(config, {
   entry: "../textlint-server/src/node/server.ts",
   output: {
+    path: path.resolve(__dirname, "dist", "node"),
     filename: "server.js",
   },
 });
