@@ -1,8 +1,12 @@
 "use strict";
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const webpack = require("webpack");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require("path");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const extensionPackage = require("./package.json");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const merge = require("merge-options");
 
 /**@type {import('webpack').Configuration}*/
