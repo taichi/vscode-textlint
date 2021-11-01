@@ -16,15 +16,11 @@ import {
   TextEdit,
   State as ServerState,
   ErrorHandler,
-  ErrorAction,
-  CloseAction,
   RevealOutputChannelOn,
   LanguageClientOptions,
   CommonLanguageClient,
   InitializationFailedHandler,
 } from "vscode-languageclient";
-
-import { LanguageClient, ServerOptions, TransportKind } from "vscode-languageclient/node";
 
 import { LogTraceNotification } from "vscode-jsonrpc";
 
@@ -34,7 +30,6 @@ import {
   StatusNotification,
   NoConfigNotification,
   NoLibraryNotification,
-  ExitNotification,
   AllFixesRequest,
   StartProgressNotification,
   StopProgressNotification,
@@ -48,52 +43,7 @@ export interface ExtensionInternal {
   onAllFixesComplete(fn: (te: TextEditor, edits: TextEdit[], ok: boolean) => void);
 }
 
-export function activate(context: ExtensionContext): ExtensionInternal {
-  const client = newNodeClient(context);
-  return configureClient(context, client);
-}
-
-function newNodeClient(context: ExtensionContext): CommonLanguageClient {
-  const module = URIUtils.joinPath(context.extensionUri, "dist", "server.js").fsPath;
-
-  const serverOptions: ServerOptions = {
-    run: { module, transport: TransportKind.ipc },
-    debug: { module, transport: TransportKind.ipc, options: { execArgv: ["--nolazy", "--inspect=6011"] } },
-  };
-
-  // eslint-disable-next-line prefer-const
-  let defaultErrorHandler: ErrorHandler;
-  let serverCalledProcessExit = false;
-
-  const clientOptions = newClientOptions(
-    (error) => {
-      client.error("Server initialization failed.", error);
-      return false;
-    },
-    {
-      error: (error, message, count): ErrorAction => {
-        return defaultErrorHandler.error(error, message, count);
-      },
-      closed: (): CloseAction => {
-        if (serverCalledProcessExit) {
-          return CloseAction.DoNotRestart;
-        }
-        return defaultErrorHandler.closed();
-      },
-    }
-  );
-
-  const client = new LanguageClient("textlint", serverOptions, clientOptions);
-  defaultErrorHandler = client.createDefaultErrorHandler();
-  client.onReady().then(() => {
-    client.onNotification(ExitNotification.type, () => {
-      serverCalledProcessExit = true;
-    });
-  });
-  return client;
-}
-
-function newClientOptions(
+export function newClientOptions(
   initializationFailedHandler: InitializationFailedHandler,
   errorHandler: ErrorHandler
 ): LanguageClientOptions {
@@ -126,7 +76,7 @@ function newClientOptions(
   };
 }
 
-function configureClient(context: ExtensionContext, client: CommonLanguageClient): ExtensionInternal {
+export function configureClient(context: ExtensionContext, client: CommonLanguageClient): ExtensionInternal {
   const statusBar = new StatusBar(getConfig("languages"));
   client.onReady().then(() => {
     client.onDidChangeState((event) => {
@@ -281,7 +231,7 @@ function configureAutoFixOnSave(client: CommonLanguageClient) {
   }
 }
 
-function disposeAutoFixOnSave() {
+export function disposeAutoFixOnSave() {
   if (autoFixOnSave) {
     autoFixOnSave.dispose();
     autoFixOnSave = undefined;
@@ -346,10 +296,6 @@ async function applyTextEdits(
       return true;
     }
   }
-}
-
-export function deactivate() {
-  disposeAutoFixOnSave();
 }
 
 function config() {

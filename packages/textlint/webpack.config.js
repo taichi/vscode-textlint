@@ -46,7 +46,7 @@ const config = {
 
 /**@type {import('webpack').Configuration}*/
 const client = merge(config, {
-  entry: "./src/extension.ts",
+  entry: "./src/node/extension.ts",
   output: {
     filename: "extension.js",
   },

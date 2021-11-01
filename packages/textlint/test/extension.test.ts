@@ -3,7 +3,7 @@ import * as fs from "fs-extra";
 import * as path from "path";
 
 import { workspace, window, commands, Extension, extensions, Disposable } from "vscode";
-import { ExtensionInternal } from "../src/extension";
+import { ExtensionInternal } from "../src/common";
 
 import { PublishDiagnosticsNotification } from "./types";
 
