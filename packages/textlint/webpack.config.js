@@ -60,7 +60,7 @@ const client = merge(config, {
 
 /**@type {import('webpack').Configuration}*/
 const server = merge(config, {
-  entry: "../textlint-server/src/server.ts",
+  entry: "../textlint-server/src/node/server.ts",
   output: {
     filename: "server.js",
   },
