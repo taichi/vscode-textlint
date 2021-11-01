@@ -13,6 +13,7 @@ const merge = require("merge-options");
 const config = {
   target: "node",
   output: {
+    filename: "[name].js",
     libraryTarget: "commonjs",
   },
   stats: {
@@ -45,10 +46,11 @@ const config = {
 
 /**@type {import('webpack').Configuration}*/
 const client = merge(config, {
-  entry: "./src/node/extension.ts",
+  entry: {
+    extension: "./src/node/extension.ts",
+  },
   output: {
     path: path.resolve(__dirname, "dist", "node"),
-    filename: "extension.js",
   },
   plugins: [
     new webpack.EnvironmentPlugin({
@@ -59,12 +61,37 @@ const client = merge(config, {
 });
 
 /**@type {import('webpack').Configuration}*/
+const webClient = merge(config, {
+  target: "webworker",
+  entry: {
+    extension: "./src/web/extension.ts",
+    "test/index": "./test/web/index.ts",
+  },
+  output: {
+    path: path.resolve(__dirname, "dist", "web"),
+    filename: "[name].js",
+  },
+  resolve: {
+    mainFields: ["browser", "main", "module"],
+    fallback: {
+      assert: require.resolve("assert"),
+    },
+  },
+  plugins: [
+    new webpack.ProvidePlugin({
+      process: "process/browser",
+    }),
+  ],
+});
+
+/**@type {import('webpack').Configuration}*/
 const server = merge(config, {
-  entry: "../textlint-server/src/node/server.ts",
+  entry: {
+    server: "../textlint-server/src/node/server.ts",
+  },
   output: {
     path: path.resolve(__dirname, "dist", "node"),
-    filename: "server.js",
   },
 });
 
-module.exports = [client, server];
+module.exports = [client, webClient, server];

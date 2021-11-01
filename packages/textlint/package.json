@@ -17,16 +17,22 @@
   "license": "MIT",
   "publisher": "taichi",
   "main": "./dist/node/extension",
+  "browser": "./dist/web/extension",
   "scripts": {
     "clean": "rimraf dist out node_modules",
     "clean:server": "cd ../textlint-server && npm run clean",
     "compile": "tsc -p ./",
     "webpack": "webpack --mode production",
     "pretest": "npm-run-all --serial clean --parallel compile webpack",
-    "test": "node ./out/test/runTest.js",
+    "test": "run-s test:node test:web",
+    "test:node": "node ./out/test/node/runTest.js",
+    "test:web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/index.js",
     "setup": "npm install --production && cd ../textlint-server && npm install --production",
     "vscode:prepublish": "npm-run-all --parallel clean clean:server --serial setup webpack",
-    "watch": "webpack --mode development --watch"
+    "watch": "webpack --mode development --watch",
+    "web": "run-p web:*",
+    "web:serve": "serve --cors -l 5000",
+    "web:tunnel": "lt -p 5000"
   },
   "contributes": {
     "commands": [

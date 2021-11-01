@@ -25,5 +25,5 @@ out
 lib
 dist
 .vscode-test
+.vscode-test-web
 *.vsix
-
