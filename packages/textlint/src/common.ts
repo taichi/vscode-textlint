@@ -16,12 +16,11 @@ import {
   TextEdit,
   State as ServerState,
   ErrorHandler,
-  ErrorAction,
-  CloseAction,
   RevealOutputChannelOn,
+  LanguageClientOptions,
+  CommonLanguageClient,
+  InitializationFailedHandler,
 } from "vscode-languageclient";
-
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient/node";
 
 import { LogTraceNotification } from "vscode-jsonrpc";
 
@@ -31,7 +30,6 @@ import {
   StatusNotification,
   NoConfigNotification,
   NoLibraryNotification,
-  ExitNotification,
   AllFixesRequest,
   StartProgressNotification,
   StopProgressNotification,
@@ -40,13 +38,45 @@ import {
 import { Status, StatusBar } from "./status";
 
 export interface ExtensionInternal {
-  client: LanguageClient;
+  client: CommonLanguageClient;
   statusBar: StatusBar;
   onAllFixesComplete(fn: (te: TextEditor, edits: TextEdit[], ok: boolean) => void);
 }
 
-export function activate(context: ExtensionContext): ExtensionInternal {
-  const client = newClient(context);
+export function newClientOptions(
+  initializationFailedHandler: InitializationFailedHandler,
+  errorHandler: ErrorHandler
+): LanguageClientOptions {
+  return {
+    documentSelector: getConfig<string[]>("languages").map((id) => {
+      return { language: id, scheme: "file" };
+    }),
+    diagnosticCollectionName: "textlint",
+    revealOutputChannelOn: RevealOutputChannelOn.Error,
+    synchronize: {
+      configurationSection: "textlint",
+      fileEvents: [
+        workspace.createFileSystemWatcher("**/package.json"),
+        workspace.createFileSystemWatcher("**/.textlintrc"),
+        workspace.createFileSystemWatcher("**/.textlintrc.{js,json,yml,yaml}"),
+        workspace.createFileSystemWatcher("**/.textlintignore"),
+      ],
+    },
+    initializationOptions: () => {
+      return {
+        configPath: getConfig("configPath"),
+        ignorePath: getConfig("ignorePath"),
+        nodePath: getConfig("nodePath"),
+        run: getConfig("run"),
+        trace: getConfig("trace", "off"),
+      };
+    },
+    initializationFailedHandler,
+    errorHandler,
+  };
+}
+
+export function configureClient(context: ExtensionContext, client: CommonLanguageClient): ExtensionInternal {
   const statusBar = new StatusBar(getConfig("languages"));
   client.onReady().then(() => {
     client.onDidChangeState((event) => {
@@ -97,69 +127,6 @@ You need to reopen the workspace after installing textlint.`
     statusBar,
     onAllFixesComplete,
   };
-}
-
-function newClient(context: ExtensionContext): LanguageClient {
-  const module = URIUtils.joinPath(context.extensionUri, "dist", "server.js").fsPath;
-  const debugOptions = { execArgv: ["--nolazy", "--inspect=6011"] };
-
-  const serverOptions: ServerOptions = {
-    run: { module, transport: TransportKind.ipc },
-    debug: { module, transport: TransportKind.ipc, options: debugOptions },
-  };
-
-  // eslint-disable-next-line prefer-const
-  let defaultErrorHandler: ErrorHandler;
-  let serverCalledProcessExit = false;
-  const clientOptions: LanguageClientOptions = {
-    documentSelector: getConfig<string[]>("languages").map((id) => {
-      return { language: id, scheme: "file" };
-    }),
-    diagnosticCollectionName: "textlint",
-    revealOutputChannelOn: RevealOutputChannelOn.Error,
-    synchronize: {
-      configurationSection: "textlint",
-      fileEvents: [
-        workspace.createFileSystemWatcher("**/package.json"),
-        workspace.createFileSystemWatcher("**/.textlintrc"),
-        workspace.createFileSystemWatcher("**/.textlintrc.{js,json,yml,yaml}"),
-        workspace.createFileSystemWatcher("**/.textlintignore"),
-      ],
-    },
-    initializationOptions: () => {
-      return {
-        configPath: getConfig("configPath"),
-        ignorePath: getConfig("ignorePath"),
-        nodePath: getConfig("nodePath"),
-        run: getConfig("run"),
-        trace: getConfig("trace", "off"),
-      };
-    },
-    initializationFailedHandler: (error) => {
-      client.error("Server initialization failed.", error);
-      return false;
-    },
-    errorHandler: {
-      error: (error, message, count): ErrorAction => {
-        return defaultErrorHandler.error(error, message, count);
-      },
-      closed: (): CloseAction => {
-        if (serverCalledProcessExit) {
-          return CloseAction.DoNotRestart;
-        }
-        return defaultErrorHandler.closed();
-      },
-    },
-  };
-
-  const client = new LanguageClient("textlint", serverOptions, clientOptions);
-  defaultErrorHandler = client.createDefaultErrorHandler();
-  client.onReady().then(() => {
-    client.onNotification(ExitNotification.type, () => {
-      serverCalledProcessExit = true;
-    });
-  });
-  return client;
 }
 
 async function createConfig() {
@@ -233,7 +200,7 @@ function toQuickPickItems(folders: WorkspaceFolder[]): ({ folder: WorkspaceFolde
 
 let autoFixOnSave: Disposable;
 
-function configureAutoFixOnSave(client: LanguageClient) {
+function configureAutoFixOnSave(client: CommonLanguageClient) {
   const auto = getConfig("autoFixOnSave", false);
   disposeAutoFixOnSave();
 
@@ -264,14 +231,14 @@ function configureAutoFixOnSave(client: LanguageClient) {
   }
 }
 
-function disposeAutoFixOnSave() {
+export function disposeAutoFixOnSave() {
   if (autoFixOnSave) {
     autoFixOnSave.dispose();
     autoFixOnSave = undefined;
   }
 }
 
-function makeAutoFixFn(client: LanguageClient) {
+function makeAutoFixFn(client: CommonLanguageClient) {
   return () => {
     const textEditor = window.activeTextEditor;
     if (textEditor) {
@@ -290,7 +257,7 @@ function makeAutoFixFn(client: LanguageClient) {
   };
 }
 
-function makeApplyFixFn(client: LanguageClient) {
+function makeApplyFixFn(client: CommonLanguageClient) {
   return async (uri: string, documentVersion: number, edits: TextEdit[]) => {
     await applyTextEdits(client, uri, documentVersion, edits);
   };
@@ -302,7 +269,7 @@ function onAllFixesComplete(fn: (te: TextEditor, edits: TextEdit[], ok: boolean)
 }
 
 async function applyTextEdits(
-  client: LanguageClient,
+  client: CommonLanguageClient,
   uri: string,
   documentVersion: number,
   edits: TextEdit[]
@@ -329,10 +296,6 @@ async function applyTextEdits(
       return true;
     }
   }
-}
-
-export function deactivate() {
-  disposeAutoFixOnSave();
 }
 
 function config() {

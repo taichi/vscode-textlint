@@ -11,16 +11,6 @@
   "tasks": [
     {
       "type": "npm",
-      "script": "compile",
-      "group": "build",
-      "presentation": {
-        "panel": "dedicated",
-        "reveal": "never"
-      },
-      "problemMatcher": ["$tsc", "$ts-webpack"]
-    },
-    {
-      "type": "npm",
       "script": "watch",
       "isBackground": true,
       "group": {

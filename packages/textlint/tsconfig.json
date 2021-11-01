@@ -3,8 +3,8 @@
     "module": "commonjs",
     "target": "es6",
     "outDir": "out",
-    "lib": ["es6", "DOM"],
+    "lib": ["es6", "WebWorker"],
     "sourceMap": true
   },
-  "exclude": ["node_modules", ".vscode-test"]
+  "exclude": ["node_modules", ".vscode-test", ".vscode-test-web"]
 }
