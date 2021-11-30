@@ -322,10 +322,9 @@ function toDiagnostic(message: TextLintMessage): [TextLintMessage, Diagnostic] {
   if (message.message.indexOf("->") >= 0) {
     offset = message.message.indexOf(" ->");
   }
-  // eslint-disable-next-line quotes
-  if (message.message.indexOf('"') >= 0) {
-    // eslint-disable-next-line quotes
-    offset = message.message.indexOf('"', message.message.indexOf('"') + 1) - 1;
+  const quoteIndex = message.message.indexOf(`"`);
+  if (quoteIndex >= 0) {
+    offset = Math.max(0, message.message.indexOf(`"`, quoteIndex + 1) - quoteIndex - 1);
   }
   const pos_end = Position.create(Math.max(0, message.line - 1), Math.max(0, message.column - 1) + offset);
   const diag: Diagnostic = {
