@@ -46,6 +46,10 @@ This extension contributes the following commands to the Command palette.
 
 ## Release Notes
 
+### 0.11.0
+- Fix highlight range issue
+  - thanks for @Yuiki
+
 ### 0.10.0
 
 - vscode workspace support
