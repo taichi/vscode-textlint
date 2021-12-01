@@ -1,7 +1,7 @@
 {
   "name": "vscode-textlint",
   "displayName": "vscode-textlint",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Integrates Textlint into VS Code.",
   "categories": [
     "Linters"
