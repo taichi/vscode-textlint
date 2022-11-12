@@ -130,7 +130,7 @@
     "onCommand:textlint.executeAutofix"
   ],
   "dependencies": {
-    "minimatch": "^3.0.4",
+    "minimatch": "^3.0.5",
     "vscode-languageclient": "^7.0.0",
     "vscode-uri": "^3.0.2"
   },
