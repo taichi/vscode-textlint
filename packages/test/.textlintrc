@@ -1,6 +1,7 @@
 {
   "plugins": {
-    "latex2e": {}
+    "html": true,
+    "latex2e": true
   },
   "filters": {},
   "rules": {

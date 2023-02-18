@@ -36,14 +36,16 @@ import {
 } from "./types";
 
 import { TextlintFixRepository, AutoFix } from "./autofix";
+import type { TextLintEngine, createLinter, TextLintMessage } from "./textlint";
 
 const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
 let trace: number;
 let settings;
-documents.listen(connection);
 
-const engineRepo: Map<string /* workspaceFolder uri */, TextLintEngine> = new Map();
+type TextlintLinter = TextLintEngine | (ReturnType<createLinter> & { availableExtensions: string[] });
+
+const engineRepo: Map<string /* workspaceFolder uri */, TextlintLinter> = new Map();
 const fixRepo: Map<string /* uri */, TextlintFixRepository> = new Map();
 
 connection.onInitialize(async (params) => {
@@ -82,11 +84,17 @@ async function configureEngine(folders: WorkspaceFolder[]) {
       const configFile = lookupConfig(root);
       const ignoreFile = lookupIgnore(root);
       const mod = await resolveModule(root);
-      const engine = new mod.TextLintEngine({
-        configFile,
-        ignoreFile,
+      const descriptor = await mod.loadTextlintrc({
+        configFilePath: configFile,
       });
-      engineRepo.set(folder.uri, engine);
+      const linter = mod.createLinter({
+        descriptor,
+        ignoreFilePath: ignoreFile,
+      });
+      engineRepo.set(folder.uri, {
+        ...linter,
+        availableExtensions: descriptor.availableExtensions,
+      });
     } catch (e) {
       TRACE("failed to configureEngine", e);
     }
@@ -209,6 +217,7 @@ documents.onDidClose((event) => {
 
 async function validateSingle(textDocument: TextDocument) {
   sendStartProgress();
+  console.log("validateSingle", textDocument.uri);
   return validate(textDocument)
     .then(sendOK, (error) => {
       sendError(error);
@@ -259,7 +268,7 @@ function startsWith(target, prefix: string): boolean {
   return true;
 }
 
-function lookupEngine(doc: TextDocument): [string, TextLintEngine] {
+function lookupEngine(doc: TextDocument): [string, TextlintLinter] {
   TRACE(`lookupEngine ${doc.uri}`);
   for (const ent of engineRepo.entries()) {
     if (startsWith(doc.uri, ent[0])) {
@@ -272,6 +281,8 @@ function lookupEngine(doc: TextDocument): [string, TextLintEngine] {
 }
 
 async function validate(doc: TextDocument) {
+  console.log("valialioalsiladi");
+
   TRACE(`validate ${doc.uri}`);
   const uri = URI.parse(doc.uri);
   if (doc.uri.startsWith("file:") === false) {
@@ -283,10 +294,17 @@ async function validate(doc: TextDocument) {
   if (repo) {
     const [folder, engine] = lookupEngine(doc);
     const ext = URIUtils.extname(uri);
+    console.log({
+      ext,
+      availableExtensions: engine.availableExtensions,
+    });
     if (engine && -1 < engine.availableExtensions.findIndex((s) => s === ext) && isTarget(folder, uri.fsPath)) {
       repo.clear();
       try {
-        const results = await engine.executeOnText(doc.getText(), ext);
+        const results =
+          "lintText" in engine
+            ? [await engine.lintText(doc.getText(), uri.fsPath)]
+            : await engine.executeOnText(doc.getText(), ext);
         TRACE("results", results);
         for (const result of results) {
           const diagnostics = result.messages.map(toDiagnostic).map(([msg, diag]) => {
@@ -448,4 +466,8 @@ export function TRACE(message: string, data?: unknown) {
   }
 }
 
+// Make the text document manager listen on the connection
+// for open, change and close text document events
+documents.listen(connection);
+// Listen on the connection
 connection.listen();
