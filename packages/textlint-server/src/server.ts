@@ -42,6 +42,7 @@ const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
 let trace: number;
 let settings;
+documents.listen(connection);
 
 type TextlintLinter = {
   linter: ReturnType<createLinter>;
@@ -251,7 +252,6 @@ documents.onDidClose((event) => {
 
 async function validateSingle(textDocument: TextDocument) {
   sendStartProgress();
-  console.log("validateSingle", textDocument.uri);
   return validate(textDocument)
     .then(sendOK, (error) => {
       sendError(error);
@@ -491,8 +491,4 @@ export function TRACE(message: string, data?: unknown) {
   }
 }
 
-// Make the text document manager listen on the connection
-// for open, change and close text document events
-documents.listen(connection);
-// Listen on the connection
 connection.listen();
