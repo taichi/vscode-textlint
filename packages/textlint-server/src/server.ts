@@ -36,16 +36,19 @@ import {
 } from "./types";
 
 import { TextlintFixRepository, AutoFix } from "./autofix";
-import type { TextLintEngine, createLinter, TextLintMessage } from "./textlint";
+import type { createLinter, TextLintMessage } from "./textlint";
 
 const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
 let trace: number;
 let settings;
 
-type TextlintLinter = TextLintEngine | (ReturnType<createLinter> & { availableExtensions: string[] });
+type TextlintLinter = {
+  linter: ReturnType<createLinter>;
+  availableExtensions: string[];
+};
 
-const engineRepo: Map<string /* workspaceFolder uri */, TextlintLinter> = new Map();
+const linterRepo: Map<string /* workspaceFolder uri */, TextlintLinter> = new Map();
 const fixRepo: Map<string /* uri */, TextlintFixRepository> = new Map();
 
 connection.onInitialize(async (params) => {
@@ -70,7 +73,7 @@ connection.onInitialized(async () => {
   await configureEngine(folders);
   connection.workspace.onDidChangeWorkspaceFolders(async (event) => {
     for (const folder of event.removed) {
-      engineRepo.delete(folder.uri);
+      linterRepo.delete(folder.uri);
     }
     await reConfigure();
   });
@@ -83,18 +86,49 @@ async function configureEngine(folders: WorkspaceFolder[]) {
     try {
       const configFile = lookupConfig(root);
       const ignoreFile = lookupIgnore(root);
+
       const mod = await resolveModule(root);
-      const descriptor = await mod.loadTextlintrc({
-        configFilePath: configFile,
-      });
-      const linter = mod.createLinter({
-        descriptor,
-        ignoreFilePath: ignoreFile,
-      });
-      engineRepo.set(folder.uri, {
-        ...linter,
-        availableExtensions: descriptor.availableExtensions,
-      });
+      const hasLinterAPI = "createLinter" in mod && "loadTextlintrc" in mod;
+      // textlint v13+
+      if (hasLinterAPI) {
+        const descriptor = await mod.loadTextlintrc({
+          configFilePath: configFile,
+        });
+        const linter = mod.createLinter({
+          descriptor,
+          ignoreFilePath: ignoreFile,
+        });
+        linterRepo.set(folder.uri, {
+          linter,
+          availableExtensions: descriptor.availableExtensions,
+        });
+      } else {
+        // TODO: These APIs are deprecated. Remove this code in the future.
+        // textlint v12 or older - deprecated engingles API
+        const engine = new mod.TextLintEngine({
+          configFile,
+          ignoreFile,
+        });
+        // polyfill for textlint v12
+        const linter: ReturnType<createLinter> = {
+          lintText: (text, filePath) => {
+            return engine.executeOnText(text, filePath);
+          },
+          lintFiles: (files) => {
+            return engine.executeOnFiles(files);
+          },
+          fixFiles: (files) => {
+            return engine.fixFiles(files);
+          },
+          fixText(text, filePath) {
+            return engine.fixText(text, filePath);
+          },
+        };
+        linterRepo.set(folder.uri, {
+          linter,
+          availableExtensions: engine.availableExtensions,
+        });
+      }
     } catch (e) {
       TRACE("failed to configureEngine", e);
     }
@@ -270,7 +304,7 @@ function startsWith(target, prefix: string): boolean {
 
 function lookupEngine(doc: TextDocument): [string, TextlintLinter] {
   TRACE(`lookupEngine ${doc.uri}`);
-  for (const ent of engineRepo.entries()) {
+  for (const ent of linterRepo.entries()) {
     if (startsWith(doc.uri, ent[0])) {
       TRACE(`lookupEngine ${doc.uri} => ${ent[0]}`);
       return ent;
@@ -281,8 +315,6 @@ function lookupEngine(doc: TextDocument): [string, TextlintLinter] {
 }
 
 async function validate(doc: TextDocument) {
-  console.log("valialioalsiladi");
-
   TRACE(`validate ${doc.uri}`);
   const uri = URI.parse(doc.uri);
   if (doc.uri.startsWith("file:") === false) {
@@ -294,17 +326,10 @@ async function validate(doc: TextDocument) {
   if (repo) {
     const [folder, engine] = lookupEngine(doc);
     const ext = URIUtils.extname(uri);
-    console.log({
-      ext,
-      availableExtensions: engine.availableExtensions,
-    });
     if (engine && -1 < engine.availableExtensions.findIndex((s) => s === ext) && isTarget(folder, uri.fsPath)) {
       repo.clear();
       try {
-        const results =
-          "lintText" in engine
-            ? [await engine.lintText(doc.getText(), uri.fsPath)]
-            : await engine.executeOnText(doc.getText(), ext);
+        const results = [await engine.linter.lintText(doc.getText(), uri.fsPath)];
         TRACE("results", results);
         for (const result of results) {
           const diagnostics = result.messages.map(toDiagnostic).map(([msg, diag]) => {
