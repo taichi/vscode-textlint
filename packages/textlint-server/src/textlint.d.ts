@@ -25,6 +25,19 @@ interface TextLintMessage {
   // See src/shared/type/SeverityLevel.js
   severity?: number;
 }
+export interface TextlintFixResult {
+  filePath: string;
+  // fixed content
+  output: string;
+  // all messages = pre-applyingMessages + remainingMessages
+  // it is same with one of `TextlintResult`
+  messages: TextLintMessage[];
+  // applied fixable messages
+  applyingMessages: TextLintMessage[];
+  // original means original for applyingMessages and remainingMessages
+  // pre-applyingMessages + remainingMessages
+  remainingMessages: TextLintMessage[];
+}
 
 interface TextLintResult {
   filePath: string;
@@ -36,3 +49,17 @@ interface TextLintEngine {
 
   executeOnText(text: string, ext: string): Thenable<TextLintResult[]>;
 }
+type TextlintKernelDescriptor = unknown;
+export type CreateLinterOptions = {
+  descriptor: TextlintKernelDescriptor;
+  ignoreFilePath?: string;
+  quiet?: boolean;
+  cache?: boolean;
+  cacheLocation?: string;
+};
+export type createLinter = (options: CreateLinterOptions) => {
+  lintFiles(files: string[]): Promise<TextLintResult[]>;
+  lintText(text: string, filePath: string): Promise<TextLintResult>;
+  fixFiles(files: string[]): Promise<TextlintFixResult[]>;
+  fixText(text: string, filePath: string): Promise<TextlintFixResult>;
+};
