@@ -67,7 +67,7 @@ File will not be validated. Consider running the 'Create .textlintrc file' comma
       );
     });
     client.onNotification(NoLibraryNotification.type, (p) => {
-      statusBar.status = Status.ERROR;
+      statusBar.status = Status.WARN;
       statusBar.status.log(
         client,
         `Failed to load the textlint library in ${p.workspaceFolder} .
