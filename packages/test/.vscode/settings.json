@@ -1,5 +1,14 @@
 {
     "textlint.run": "onType",
     "textlint.autoFixOnSave": false,
-    "textlint.trace": "verbose"
+    "textlint.trace": "verbose",
+    "textlint.languages": [
+        "markdown",
+        "plaintext",
+        "html",
+        "tex",
+        "latex",
+        "doctex",
+        "javascript"
+    ]
 }

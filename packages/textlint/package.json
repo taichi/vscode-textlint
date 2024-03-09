@@ -115,16 +115,7 @@
     }
   },
   "activationEvents": [
-    "onLanguage:html",
-    "onLanguage:plaintext",
-    "onLanguage:markdown",
-    "onLanguage:latex",
-    "onLanguage:tex",
-    "onLanguage:pdf",
-    "onLanguage:django-txt",
-    "onLanguage:django-html",
-    "onLanguage:doctex",
-    "onLanguage:restructuredtext",
+    "onLanguage",
     "onCommand:textlint.showOutputChannel",
     "onCommand:textlint.createConfig",
     "onCommand:textlint.executeAutofix"
@@ -151,7 +142,7 @@
     "webpack-cli": "^4.9.1"
   },
   "engines": {
-    "vscode": "^1.61.0"
+    "vscode": "^1.74.0"
   },
   "icon": "textlint-icon_128x128.png",
   "galleryBanner": {
