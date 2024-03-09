@@ -57,6 +57,20 @@ export class StatusBar {
       this._delegate.hide();
     }
   }
+  activate(languageId: string) {
+    if (languageId === "") {
+      return;
+    }
+
+    if (-1 !== this._supports.indexOf(languageId)) {
+      this._delegate.color = "";
+      this._delegate.tooltip =
+        "need to restart this extension or check this extension setting and .textlintrc if textlint is not working.";
+    } else {
+      this._delegate.color = "#818589";
+      this._delegate.tooltip = `textlint is inanctive on ${languageId}.`;
+    }
+  }
 
   get status(): Status {
     return this._status;
@@ -73,7 +87,7 @@ export class StatusBar {
 
   set serverRunning(sr: boolean) {
     this._serverRunning = sr;
-    this._delegate.tooltip = sr ? "textlint server is running." : "textlint server stopped.";
+    window.showInformationMessage(sr ? "textlint server is running." : "textlint server stopped.");
     this.update();
   }
 
@@ -83,11 +97,9 @@ export class StatusBar {
 
   updateWith(editor: TextEditor) {
     this._delegate.text = this.status.label;
-    this.show(
-      this.serverRunning === false ||
-        this._status !== Status.OK ||
-        (editor && 0 < this._supports.indexOf(editor.document.languageId))
-    );
+    const languageId = editor?.document.languageId ?? "";
+    this.activate(languageId);
+    this.show(this.serverRunning === false || this._status !== Status.OK || -1 !== this._supports.indexOf(languageId));
   }
 
   startProgress() {

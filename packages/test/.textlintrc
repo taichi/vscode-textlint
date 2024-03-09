@@ -1,6 +1,10 @@
 {
   "plugins": {
-    "html": true,
+    "html": {
+      "extensions": [
+        ".js"
+      ]
+    },
     "latex2e": true
   },
   "filters": {},
