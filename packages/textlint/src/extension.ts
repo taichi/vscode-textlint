@@ -238,7 +238,7 @@ function configureAutoFixOnSave(client: LanguageClient) {
   disposeAutoFixOnSave();
 
   if (auto) {
-    const languages = new Set(getConfig("languages"));
+    const languages = new Set(getConfig<string[]>("languages", []));
     autoFixOnSave = workspace.onWillSaveTextDocument((event) => {
       const doc = event.document;
       const target = getConfig("targetPath", null);
