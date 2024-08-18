@@ -329,6 +329,13 @@ async function validate(doc: TextDocument) {
     if (engine && -1 < engine.availableExtensions.findIndex((s) => s === ext) && isTarget(folder, uri.fsPath)) {
       repo.clear();
       try {
+        if (engine.linter.scanFilePath) {
+          const result = await engine.linter.scanFilePath(uri.fsPath);
+          if (result.status !== "ok") {
+            TRACE(`ignore ${doc.uri}`);
+            return;
+          }
+        }
         const results = [await engine.linter.lintText(doc.getText(), uri.fsPath)];
         TRACE("results", results);
         for (const result of results) {
