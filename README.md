@@ -1,5 +1,10 @@
 # vscode-textlint ![push](https://github.com/taichi/vscode-textlint/actions/workflows/push.yml/badge.svg)
 
+This repository is no longer being actively maintained. I've passed the torch to the community, and the project has found a new home.
+If you're looking for the actively maintained version of vscode-textlint, please head over to:
+
+https://github.com/textlint/vscode-textlint
+
 Extension to integrate [textlint](https://textlint.github.io/) into VSCode.
 
 ## Development setup
