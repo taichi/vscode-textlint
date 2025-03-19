@@ -44,6 +44,17 @@ interface TextLintResult {
   messages: TextLintMessage[];
 }
 
+type ScanFilePathResult =
+  | {
+      status: "ok";
+    }
+  | {
+      status: "ignored";
+    }
+  | {
+      status: "error";
+    };
+
 interface TextLintEngine {
   availableExtensions: string[];
 
@@ -62,4 +73,5 @@ export type createLinter = (options: CreateLinterOptions) => {
   lintText(text: string, filePath: string): Promise<TextLintResult>;
   fixFiles(files: string[]): Promise<TextlintFixResult[]>;
   fixText(text: string, filePath: string): Promise<TextlintFixResult>;
+  scanFilePath?(filePath: string): Promise<ScanFilePathResult>;
 };
